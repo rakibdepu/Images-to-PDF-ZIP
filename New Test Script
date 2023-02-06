@@ -19,8 +19,8 @@ Global $trayExit = TrayCreateItem("Exit")
 TraySetState($TRAY_ICONSTATE_SHOW) ; Show the tray menu.
 
 Global Const $sGUI_Show_Title = 0
-Global Const $sAppName = "- Drag and drop -"
-Global Const $sLabel_Title = "Drag and drop files and folders HERE !"
+Global Const $sAppName = "- Images to PDF & ZIP -"
+Global Const $sLabel_Title = "Drag and drop files and folders"
 Global Const $sLabel_Task = "Or click the button to browse."
 Global Const $sLabel_Status = "READY !"
 
@@ -201,7 +201,7 @@ Func _GUI_SwitchMsg()
     $guiMsg = GUIGetMsg()
     Switch $guiMsg
         Case $idButton_About
-            MsgBox(64, $sAppName & " : About", @YEAR & " © Ðào Văn Trong - Trong.LIVE", Default, $hGUI)
+            MsgBox(64, "About", "© " & @YEAR & " Rakibul Hafiz", Default, $hGUI)
         Case $idButton_Minimizes
             GUISetState(@SW_MINIMIZE, $hGUI)
         Case $idIcon
