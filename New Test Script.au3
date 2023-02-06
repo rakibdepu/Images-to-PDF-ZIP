@@ -189,23 +189,27 @@ Func _Main_Processing($sFilePath, $nCurrent = 0, $nTotal = 0)
     ;_TRAY_SwitchMsg()
     $sPercent = Round(($nCurrent / $nTotal) * 100, 2)
     GUICtrlSetData($idProgress_Total, $sPercent)
-    ConsoleWrite("Percent: " & $sPercent & "%" & @CRLF)
+    ConsoleWrite("Total Progress: " & $sPercent & "%" & @CRLF)
     GUICtrlSetData($idProgress_Current, 0)
-    GUICtrlSetData($idLabel_Titles, $nCurrent & " out of" & $nTotal & " files is being processed.")
+    GUICtrlSetData($idLabel_Titles, "Total selected " & $nTotal & " files. (" & $sPercent & "%)")
 
-    Local $sCurrentDir, $sFileNameNoExt, $sExtension, $sFileName, $sPathCurrentDir
-    Local $aPathSplit = _SplitPath($sFilePath, $sCurrentDir, $sFileNameNoExt, $sExtension, $sFileName, $sPathCurrentDir)
+    Local $sDrive, $sParentDir, $sCurrentDir, $sFileNameNoExt, $sExtension, $sFileName, $sPathParentDir, $sPathCurrentDir, $sPathFileNameNoExt
+    Local $aPathSplit = _SplitPath($sFilePath, $sDrive, $sParentDir, $sCurrentDir, $sFileNameNoExt, $sExtension, $sFileName, $sPathParentDir, $sPathCurrentDir, $sPathFileNameNoExt)
     ;Local $sCurrentDirPath= $sDrive&$sCurrentDir;StringRegExpReplace($aPathSplit, '\\[^\\]*$', '')
     ;Local $sCurrentDirName =StringRegExpReplace(_PathRemoveBackslash($sCurrentDirPath), '.*\\', '')
+    ConsoleWrite("[1] Drive: " & $sDrive & @CRLF)
+    ConsoleWrite("[2] ParentDir: " & $sParentDir & @CRLF)
     ConsoleWrite("[3] CurrentDir: " & $sCurrentDir & @CRLF)
     ConsoleWrite("[4] FileName NoExt: " & $sFileNameNoExt & @CRLF)
     ConsoleWrite("[5] Extension: " & $sExtension & @CRLF)
     ConsoleWrite("[6] FileName: " & $sFileName & @CRLF)
+    ConsoleWrite("[7] PathParentDir: " & $sPathParentDir & @CRLF)
     ConsoleWrite("[8] PathCurrentDir: " & $sPathCurrentDir & @CRLF)
-    ConsoleWrite("Processing now " & $nCurrent & "out of" & $nTotal & "): " & $sFilePath & @CRLF)
+    ConsoleWrite("[9] PathFileName NoExt: " & $sPathFileNameNoExt & @CRLF)
+    ConsoleWrite("Total selected " & $nTotal & " files. (" & $sPercent & "%)" & @CRLF)
     If _IsFile($sFilePath) Then
-        ConsoleWrite("Processing: " & $sFileName & @CRLF)
-        GUICtrlSetData($idLabel_Task, "Processing:" & $sFileName)
+        ConsoleWrite("Processing now: (" & $nCurrent & ") " & $sFileName & @CRLF)
+        GUICtrlSetData($idLabel_Task, "Processing now: (" & $nCurrent & ") " & $sFileName)
         ; Your file handler is here!
     Else
         If ($sParentDir == "\" And $sCurrentDir == "") Then ; Is Root Drive
