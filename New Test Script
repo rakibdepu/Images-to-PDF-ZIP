@@ -1,3 +1,6 @@
+#Region ;**** Directives created by AutoIt3Wrapper_GUI ****
+#AutoIt3Wrapper_Icon=faviconO.ico
+#EndRegion ;**** Directives created by AutoIt3Wrapper_GUI ****
 #include <ButtonConstants.au3>
 #include <GUIConstantsEx.au3>
 #include <ProgressConstants.au3>
@@ -33,39 +36,74 @@ Else
 EndIf
 _WinAPI_DwmSetWindowAttribute($hGUI, 33, 2)
 GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
-Global $idIcon = GUICtrlCreateIcon(@WindowsDir & "\favicon.ico", -1, 5, 50, 113, 68, BitOR($GUI_SS_DEFAULT_ICON, $SS_CENTERIMAGE))
+Global $idIcon = GUICtrlCreateIcon(@WorkingDir & "\favicon.ico", -1, 5, 50, 113, 68, BitOR($GUI_SS_DEFAULT_ICON, $SS_CENTERIMAGE))
 GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
 GUICtrlSetTip(-1, "Set/UnSet Windows on TOP")
-Global $idLabel_BG = GUICtrlCreateLabel("$sAppName", 0, 5, 400, 32, BitOR($SS_CENTER, $SS_CENTERIMAGE, $SS_NOPREFIX), $GUI_WS_EX_PARENTDRAG)
+Global $idLabel_BG = GUICtrlCreateLabel($sAppName, 0, 5, 400, 32, BitOR($SS_CENTER, $SS_CENTERIMAGE, $SS_NOPREFIX), $GUI_WS_EX_PARENTDRAG)
 GUICtrlSetFont(-1, 18, 600, 4, "Grab Community EN v2.0 Inline", 5)
 GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
-
-
-Global $idLabel_Titles = GUICtrlCreateLabel($sLabel_Title, 69, 10, 396, 17, $SS_CENTERIMAGE, $GUI_WS_EX_PARENTDRAG)
+Global $idProgress_Total = GUICtrlCreateProgress(0, 42, 400, 5)
 GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
-Global $idLabel_Task = GUICtrlCreateLabel($sLabel_Task, 69, 34, 396, 17, $SS_CENTERIMAGE, $GUI_WS_EX_PARENTDRAG)
+GUIStartGroup()
+Global $idButton_pdf = GUICtrlCreateRadio("PDF", 129, 52, 40, 18, BitOR($BS_AUTORADIOBUTTON, $BS_VCENTER), $GUI_WS_EX_PARENTDRAG)
 GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
-Global $idLabel_Status = GUICtrlCreateLabel($sLabel_Status, 69, 58, 396, 17, BitOR($SS_CENTER, $SS_CENTERIMAGE), $GUI_WS_EX_PARENTDRAG)
+Global $idButton_both = GUICtrlCreateRadio("Both", 129, 75, 40, 18, BitOR($BS_AUTORADIOBUTTON, $BS_VCENTER), $GUI_WS_EX_PARENTDRAG)
 GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
-Global $idButton_BrowseFiles = GUICtrlCreateButton("Browse &files", 472, 8, 99, 33, BitOR($BS_CENTER, $BS_VCENTER, $BS_FLAT))
+Global $idButton_zip = GUICtrlCreateRadio("ZIP", 129, 98, 40, 18, BitOR($BS_AUTORADIOBUTTON, $BS_VCENTER), $GUI_WS_EX_PARENTDRAG)
 GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
-Global $idButton_SelectFolder = GUICtrlCreateButton("Select fol&der", 472, 43, 99, 30, BitOR($BS_CENTER, $BS_VCENTER, $BS_FLAT))
+Global $idInput_term = GUICtrlCreateInput("", 179, 52, 40, 18)
 GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
-Global $idButton_Close = GUICtrlCreateButton("x", 579, 8, 17, 17, BitOR($BS_CENTER, $BS_VCENTER, $BS_FLAT))
+GUIStartGroup()
+Global $idButton_Incl = GUICtrlCreateRadio("Incl.", 179, 75, 40, 18, BitOR($BS_AUTORADIOBUTTON, $BS_VCENTER), $GUI_WS_EX_PARENTDRAG)
+GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
+Global $idButton_Excl = GUICtrlCreateRadio("Excl.", 179, 98, 40, 18, BitOR($BS_AUTORADIOBUTTON, $BS_VCENTER), $GUI_WS_EX_PARENTDRAG)
+GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
+Global $idButton_BrowseFiles = GUICtrlCreateButton("Browse" & @CRLF & "&files", 229, 52, 64, 64, BitOR($BS_CENTER, $BS_VCENTER, $BS_MULTILINE, $BS_FLAT))
+GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
+GUICtrlSetFont(-1, 8.5, 400, 0, "Ubuntu", 5)
+Global $idButton_SelectFolder = GUICtrlCreateButton("Select" & @CRLF & "fol&der", 303, 52, 64, 64, BitOR($BS_CENTER, $BS_VCENTER, $BS_MULTILINE, $BS_FLAT))
+GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
+GUICtrlSetFont(-1, 8.5, 400, 0, "Ubuntu", 5)
+Global $idButton_Close = GUICtrlCreateButton("X", 377, 52, 18, 18, BitOR($BS_CENTER, $BS_VCENTER, $BS_FLAT))
 GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
 GUICtrlSetTip(-1, "Exit")
-Global $idButton_About = GUICtrlCreateButton("A", 579, 34, 17, 17, BitOR($BS_CENTER, $BS_VCENTER, $BS_FLAT))
+GUICtrlSetFont(-1, 8.5, 400, 0, "Ubuntu", 5)
+Global $idButton_About = GUICtrlCreateButton("A", 377, 75, 18, 18, BitOR($BS_CENTER, $BS_VCENTER, $BS_FLAT))
 GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
 GUICtrlSetTip(-1, "Show About")
-Global $idButton_Minimizes = GUICtrlCreateButton("-", 579, 58, 17, 17, BitOR($BS_CENTER, $BS_VCENTER, $BS_FLAT))
+GUICtrlSetFont(-1, 8.5, 400, 0, "Ubuntu", 5)
+Global $idButton_Minimizes = GUICtrlCreateButton("-", 377, 98, 18, 18, BitOR($BS_CENTER, $BS_VCENTER, $BS_FLAT))
 GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
 GUICtrlSetTip(-1, "Minimizes Windows")
-Global $idProgress_Total = GUICtrlCreateProgress(1, 1, 596, 4)
+GUICtrlSetFont(-1, 8.5, 400, 0, "Ubuntu", 5)
+Global $idProgress_Current = GUICtrlCreateProgress(0, 121, 400, 5)
 GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
-Global $idProgress_Current = GUICtrlCreateProgress(1, 75, 596, 4)
+Global $idLabel_Titles = GUICtrlCreateLabel($sLabel_Title, 0, 131, 400, 18, BitOR($SS_CENTER, $SS_CENTERIMAGE), $GUI_WS_EX_PARENTDRAG)
 GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
+GUICtrlSetFont(-1, 8.5, 400, 0, "Ubuntu", 5)
+Global $idLabel_Task = GUICtrlCreateLabel($sLabel_Task, 0, 154, 400, 18, BitOR($SS_CENTER, $SS_CENTERIMAGE), $GUI_WS_EX_PARENTDRAG)
+GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
+GUICtrlSetFont(-1, 8.5, 400, 0, "Ubuntu", 5)
+Global $idLabel_Status = GUICtrlCreateLabel($sLabel_Status, 0, 177, 400, 18, BitOR($SS_CENTER, $SS_CENTERIMAGE), $GUI_WS_EX_PARENTDRAG)
+GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
+GUICtrlSetFont(-1, 8.5, 400, 0, "Ubuntu", 5)
 Global $hGUI_AccelTable[6][2] = [["^1", $idButton_About], ["^2", $idButton_BrowseFiles], ["^3", $idButton_SelectFolder], ["^4", $idButton_Close], ["^5", $idIcon], ["^6", $idButton_Minimizes]]
 GUISetAccelerators($hGUI_AccelTable, $hGUI)
+
+Global $hGUI_Child = GUICreate("About", 400, 200, -1, -1, $WS_POPUP, $WS_EX_TOPMOST, $hGUI)
+;GUISetBkColor(0x000000, $hGUI_Child)
+GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
+
+Local $idLabelAbout1 = GUICtrlCreateLabel("The author disclaims copyright to this source code." & @CRLF & "In place of a legal notice, here is a blessing:", 10, 40, 380, 45, BitOR($SS_CENTER, $BS_MULTILINE))
+;GUICtrlSetColor($idLabelAbout1, 0xFFFFFF)
+GUICtrlSetFont(-1, 11, 400, 4, "Ubuntu", 5)
+Local $idLabelAbout2 = GUICtrlCreateLabel("May you do good and not evil." & @CRLF & "May you find forgiveness for yourself and forgive others." & @CRLF & "May you share freely, never taking more than you give.", 10, 85, 380, 120)
+;GUICtrlSetColor($idLabelAbout2, 0xFFFFFF)
+GUICtrlSetFont(-1, 11, 400, 0, "Ubuntu", 5)
+_GuiRoundCorners($hGUI_Child, 0, 0, 7, 7)
+WinSetTrans($hGUI_Child, "", 0)
+GUISetState(@SW_HIDE, $hGUI_Child)
+
 #EndRegion ### START GUI section ###
 HotKeySet('^5', '_GUI_SetOnTop')
 Global $GuiOnTop = 0, $onWorking = 0
@@ -205,7 +243,23 @@ Func _GUI_SwitchMsg()
     $guiMsg = GUIGetMsg()
     Switch $guiMsg
         Case $idButton_About
-            MsgBox(64, "About", "© " & @YEAR & " Rakibul Hafiz", Default, $hGUI)
+            ;MsgBox(64, "About", "© " & @YEAR & " Rakibul Hafiz", Default, $hGUI)
+			GUISetState(@SW_MINIMIZE, $hGUI)
+			GUISetState(@SW_SHOW, $hGUI_Child)
+			
+			For $i = 0 To 150 Step 8
+				WinSetTrans($hGUI_Child, "", $i)
+				Sleep(10)
+			Next
+			Sleep(5000)
+			For $i = 150 To 0 Step -4
+				WinSetTrans($hGUI_Child, "", $i)
+				Sleep(10)
+			Next
+			
+			GUISetState(@SW_HIDE, $hGUI_Child)
+			_GUI_SHOW()
+			
         Case $idButton_Minimizes
             GUISetState(@SW_MINIMIZE, $hGUI)
         Case $idIcon
@@ -270,6 +324,13 @@ Func _GUI_OnProgress()
     GUICtrlSetState($idButton_Minimizes, $GUI_NODROPACCEPTED) ; NODROPACCEPTED
     GUICtrlSetState($idProgress_Total, $GUI_NODROPACCEPTED) ; NODROPACCEPTED
     GUICtrlSetState($idProgress_Current, $GUI_NODROPACCEPTED) ; NODROPACCEPTED
+    GUICtrlSetState($idButton_pdf, $GUI_NODROPACCEPTED)
+    GUICtrlSetState($idButton_zip, $GUI_NODROPACCEPTED)
+    GUICtrlSetState($idButton_both, $GUI_NODROPACCEPTED)
+    GUICtrlSetState($idInput_term, $GUI_NODROPACCEPTED)
+    GUICtrlSetState($idButton_Incl, $GUI_NODROPACCEPTED)
+    GUICtrlSetState($idButton_Excl, $GUI_NODROPACCEPTED)
+
 EndFunc   ;==>_GUI_OnProgress
 Func _GUI_OnStandby()
     $onWorking = 0
@@ -292,6 +353,12 @@ Func _GUI_OnStandby()
     GUICtrlSetState($idButton_Minimizes, $GUI_DROPACCEPTED) ; DROPACCEPTED
     GUICtrlSetState($idProgress_Total, $GUI_DROPACCEPTED) ; DROPACCEPTED
     GUICtrlSetState($idProgress_Current, $GUI_DROPACCEPTED) ; DROPACCEPTED
+    GUICtrlSetState($idButton_pdf, $GUI_DROPACCEPTED)
+    GUICtrlSetState($idButton_zip, $GUI_DROPACCEPTED)
+    GUICtrlSetState($idButton_both, $GUI_DROPACCEPTED)
+    GUICtrlSetState($idInput_term, $GUI_DROPACCEPTED)
+    GUICtrlSetState($idButton_Incl, $GUI_DROPACCEPTED)
+    GUICtrlSetState($idButton_Excl, $GUI_DROPACCEPTED)
 EndFunc   ;==>_GUI_OnStandby
 Func WM_DROPFILES($hWnd, $iMsg, $iwParam, $ilParam)
     #forceref $hWnd, $ilParam
@@ -563,4 +630,17 @@ Func __WinAPI_CloseHandle($hObject)
     If @error Then Return SetError(@error, @extended, False)
     Return $aCall[0]
 EndFunc   ;==>__WinAPI_CloseHandle
+Func _GuiRoundCorners($hWnd, $iLeftRect, $iTopRect, $iWidthEllipse, $iHeightEllipse)
+    Local $aPos = 0, $aRet = 0
+
+    $aPos = WinGetPos($hWnd)
+
+    $aRet = DllCall("gdi32.dll", "long", "CreateRoundRectRgn", "long", $iLeftRect, "long", $iTopRect, "long", $aPos[2], "long", $aPos[3], "long", $iWidthEllipse, "long", $iHeightEllipse)
+    If Not @error And $aRet[0] Then
+        $aRet = DllCall("user32.dll", "long", "SetWindowRgn", "hwnd", $hWnd, "long", $aRet[0], "int", 1)
+        If Not @error And $aRet[0] Then Return 1
+    EndIf
+
+    Return 0
+EndFunc   ;==>_GuiRoundCorners
 ; * -----:|
