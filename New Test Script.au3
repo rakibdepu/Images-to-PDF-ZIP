@@ -93,7 +93,7 @@ GUICtrlSetFont(-1, 8.5, 400, 0, "Ubuntu", 5)
 Global $idLabel_Status = GUICtrlCreateLabel($sLabel_Status, 0, 177, 400, 18, BitOR($SS_CENTER, $SS_CENTERIMAGE), $GUI_WS_EX_PARENTDRAG)
 GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
 GUICtrlSetFont(-1, 8.5, 400, 0, "Ubuntu", 5)
-Global $hGUI_AccelTable[6][2] = [["^1", $idButton_About], ["^2", $idButton_BrowseFiles], ["^3", $idButton_SelectFolder], ["^4", $idButton_Close], ["^5", $idIcon], ["^6", $idButton_Minimizes]]
+Global $hGUI_AccelTable[7][2] = [["^1", $idButton_About], ["^2", $idButton_BrowseFiles], ["^3", $idButton_SelectFolder], ["^4", $idButton_Close], ["^5", $idIcon], ["^6", $idButton_Minimizes], ["^7", $idInput_term]]
 GUISetAccelerators($hGUI_AccelTable, $hGUI)
 
 Global $hGUI_Child = GUICreate("About", 400, 200, -1, -1, $WS_POPUP, $WS_EX_TOPMOST, $hGUI)
