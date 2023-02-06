@@ -28,6 +28,12 @@ Global Const $sLabel_Task = "Or click the button to browse."
 Global Const $sLabel_Status = "READY !"
 
 #Region ### START GUI section ###
+Local $SplashScreenGui = GUICreate("SplashScreen", 600, 360, -1,-1,$WS_POPUP)
+WinSetTrans($SplashScreenGui, "", 170)
+Local $Pic1 = GUICtrlCreatePic("splash.gif", 0, 0, 600, 360)
+GUISetState(@SW_SHOW,$SplashScreenGui)
+Sleep(5000)
+GUISetState(@SW_HIDE,$SplashScreenGui)
 Global $hGUI
 If $sGUI_Show_Title Then
     $hGUI = GUICreate($sAppName, 400, 200, -1, -1, -1, BitOR($WS_EX_ACCEPTFILES, $WS_EX_TOPMOST, $WS_EX_WINDOWEDGE))
