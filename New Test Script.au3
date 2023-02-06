@@ -212,14 +212,14 @@ Func _Main_Processing($sFilePath, $nCurrent = 0, $nTotal = 0)
         GUICtrlSetData($idLabel_Task, "Processing now: (" & $nCurrent & ") " & $sFileName)
         ; Your file handler is here!
     Else
-        If ($sParentDir == "\" And $sCurrentDir == "") Then ; Is Root Drive
+        If (FileExists($sPathCurrentDir)) Then ; Is Root Drive
             ; Your drive handler is here!
-            ConsoleWrite("Processing drive: " & $sDrive & @CRLF)
-            GUICtrlSetData($idLabel_Task, "Currently Drive: " & $sDrive)
-        Else
-            ; Your directory handler is here!
             ConsoleWrite("Processing directory: " & _PathRemove_Backslash($sPathCurrentDir) & @CRLF)
             GUICtrlSetData($idLabel_Task, "Currently Folder: " & _PathRemove_Backslash($sCurrentDir))
+        Else
+            ; Your directory handler is here!
+            ConsoleWrite("Processing drive: " & $sDrive & @CRLF)
+            GUICtrlSetData($idLabel_Task, "Currently Drive: " & $sDrive)
         EndIf
     EndIf
 
