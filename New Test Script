@@ -27,16 +27,20 @@ Global Const $sLabel_Status = "READY !"
 #Region ### START GUI section ###
 Global $hGUI
 If $sGUI_Show_Title Then
-    $hGUI = GUICreate($sAppName, 600, 80, -1, -1, -1, BitOR($WS_EX_ACCEPTFILES, $WS_EX_TOPMOST, $WS_EX_WINDOWEDGE))
+    $hGUI = GUICreate($sAppName, 400, 200, -1, -1, -1, BitOR($WS_EX_ACCEPTFILES, $WS_EX_TOPMOST, $WS_EX_WINDOWEDGE))
 Else
-    $hGUI = GUICreate($sAppName, 600, 80, -1, -1, BitOR($WS_POPUP, $WS_BORDER), BitOR($WS_EX_ACCEPTFILES, $WS_EX_TOPMOST, $WS_EX_WINDOWEDGE))
+    $hGUI = GUICreate($sAppName, 400, 200, -1, -1, BitOR($WS_POPUP, $WS_BORDER), BitOR($WS_EX_ACCEPTFILES, $WS_EX_TOPMOST, $WS_EX_WINDOWEDGE))
 EndIf
+_WinAPI_DwmSetWindowAttribute($hGUI, 33, 2)
 GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
-Global $idLabel_BG = GUICtrlCreateLabel("", 66, 0, 400, 81, -1, $GUI_WS_EX_PARENTDRAG)
-GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
-Global $idIcon = GUICtrlCreateIcon(@WindowsDir & "\explorer.exe", -19, 1, 8, 64, 64, BitOR($GUI_SS_DEFAULT_ICON, $SS_CENTERIMAGE))
+Global $idIcon = GUICtrlCreateIcon(@WindowsDir & "\favicon.ico", -1, 5, 50, 113, 68, BitOR($GUI_SS_DEFAULT_ICON, $SS_CENTERIMAGE))
 GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
 GUICtrlSetTip(-1, "Set/UnSet Windows on TOP")
+Global $idLabel_BG = GUICtrlCreateLabel("$sAppName", 0, 5, 400, 32, BitOR($SS_CENTER, $SS_CENTERIMAGE, $SS_NOPREFIX), $GUI_WS_EX_PARENTDRAG)
+GUICtrlSetFont(-1, 18, 600, 4, "Grab Community EN v2.0 Inline", 5)
+GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
+
+
 Global $idLabel_Titles = GUICtrlCreateLabel($sLabel_Title, 69, 10, 396, 17, $SS_CENTERIMAGE, $GUI_WS_EX_PARENTDRAG)
 GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
 Global $idLabel_Task = GUICtrlCreateLabel($sLabel_Task, 69, 34, 396, 17, $SS_CENTERIMAGE, $GUI_WS_EX_PARENTDRAG)
