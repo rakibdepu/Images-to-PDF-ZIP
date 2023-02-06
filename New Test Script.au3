@@ -189,36 +189,32 @@ Func _Main_Processing($sFilePath, $nCurrent = 0, $nTotal = 0)
     ;_TRAY_SwitchMsg()
     $sPercent = Round(($nCurrent / $nTotal) * 100, 2)
     GUICtrlSetData($idProgress_Total, $sPercent)
-    ConsoleWrite("- Percent: " & $sPercent & " %" & @CRLF)
+    ConsoleWrite("Percent: " & $sPercent & "%" & @CRLF)
     GUICtrlSetData($idProgress_Current, 0)
-    GUICtrlSetData($idLabel_Titles, "Processing " & $nCurrent & "/" & $nTotal & " folder/files ! ")
+    GUICtrlSetData($idLabel_Titles, $nCurrent & " out of" & $nTotal & " files is being processed.")
 
-    Local $sDrive, $sParentDir, $sCurrentDir, $sFileNameNoExt, $sExtension, $sFileName, $sPathParentDir, $sPathCurrentDir, $sPathFileNameNoExt
-    Local $aPathSplit = _SplitPath($sFilePath, $sDrive, $sParentDir, $sCurrentDir, $sFileNameNoExt, $sExtension, $sFileName, $sPathParentDir, $sPathCurrentDir, $sPathFileNameNoExt)
+    Local $sCurrentDir, $sFileNameNoExt, $sExtension, $sFileName, $sPathCurrentDir
+    Local $aPathSplit = _SplitPath($sFilePath, $sCurrentDir, $sFileNameNoExt, $sExtension, $sFileName, $sPathCurrentDir)
     ;Local $sCurrentDirPath= $sDrive&$sCurrentDir;StringRegExpReplace($aPathSplit, '\\[^\\]*$', '')
     ;Local $sCurrentDirName =StringRegExpReplace(_PathRemoveBackslash($sCurrentDirPath), '.*\\', '')
-    ConsoleWrite(";~ - [1] Drive: " & $sDrive & @CRLF)
-    ConsoleWrite(";~ - [2] ParentDir: " & $sParentDir & @CRLF)
-    ConsoleWrite(";~ - [3] CurrentDir: " & $sCurrentDir & @CRLF)
-    ConsoleWrite(";~ - [4] FileName NoExt: " & $sFileNameNoExt & @CRLF)
-    ConsoleWrite(";~ - [5] Extension: " & $sExtension & @CRLF)
-    ConsoleWrite(";~ - [6] FileName: " & $sFileName & @CRLF)
-    ConsoleWrite(";~ - [7] PathParentDir: " & $sPathParentDir & @CRLF)
-    ConsoleWrite(";~ - [8] PathCurrentDir: " & $sPathCurrentDir & @CRLF)
-    ConsoleWrite(";~ - [9] PathFileName NoExt: " & $sPathFileNameNoExt & @CRLF)
-    ConsoleWrite("- Processing (" & $nCurrent & "/" & $nTotal & "): " & $sFilePath & @CRLF)
+    ConsoleWrite("[3] CurrentDir: " & $sCurrentDir & @CRLF)
+    ConsoleWrite("[4] FileName NoExt: " & $sFileNameNoExt & @CRLF)
+    ConsoleWrite("[5] Extension: " & $sExtension & @CRLF)
+    ConsoleWrite("[6] FileName: " & $sFileName & @CRLF)
+    ConsoleWrite("[8] PathCurrentDir: " & $sPathCurrentDir & @CRLF)
+    ConsoleWrite("Processing now " & $nCurrent & "out of" & $nTotal & "): " & $sFilePath & @CRLF)
     If _IsFile($sFilePath) Then
-        ConsoleWrite("- Processing file: " & $sFileName & @CRLF)
-        GUICtrlSetData($idLabel_Task, "Currently File: " & $sFileName)
+        ConsoleWrite("Processing: " & $sFileName & @CRLF)
+        GUICtrlSetData($idLabel_Task, "Processing:" & $sFileName)
         ; Your file handler is here!
     Else
         If ($sParentDir == "\" And $sCurrentDir == "") Then ; Is Root Drive
             ; Your drive handler is here!
-            ConsoleWrite("- Processing drive: " & $sDrive & @CRLF)
+            ConsoleWrite("Processing drive: " & $sDrive & @CRLF)
             GUICtrlSetData($idLabel_Task, "Currently Drive: " & $sDrive)
         Else
             ; Your directory handler is here!
-            ConsoleWrite("- Processing directory: " & _PathRemove_Backslash($sPathCurrentDir) & @CRLF)
+            ConsoleWrite("Processing directory: " & _PathRemove_Backslash($sPathCurrentDir) & @CRLF)
             GUICtrlSetData($idLabel_Task, "Currently Folder: " & _PathRemove_Backslash($sCurrentDir))
         EndIf
     EndIf
@@ -401,7 +397,7 @@ Func _DelFile($sPath, $Fc = 1)
     If (Not _IsFile($sPath)) Then
         Return SetError(-1, 0, 0)
     Else
-        ConsoleWrite("> DelFile: " & $sPath & @CRLF)
+        ConsoleWrite("DelFile: " & $sPath & @CRLF)
         FileSetAttrib($sPath, "-RSH")
         FileDelete($sPath)
         If $Fc Then
@@ -417,7 +413,7 @@ Func _RemoveDir($sPath, $Fc = 1)
     If _IsFile($sPath) Then
         Return SetError(-1, 0, 0)
     Else
-        ConsoleWrite("> _RemoveDir: " & $sPath & @CRLF)
+        ConsoleWrite("RemoveDir: " & $sPath & @CRLF)
         DirRemove($sPath, $Fc)
         If FileExists($sPath) Then _TakeOwnership($sPath, "Everyone", $Fc)
         DirRemove($sPath, $Fc)
@@ -521,49 +517,49 @@ Func _TakeOwnership($sFile, $iUserName = "Everyone", $sRecurse = 1)
 EndFunc   ;==>_TakeOwnership
 ; * -----:|
 Func _PathGet_Part($sFilePath, $returnPart = 0)
-    ConsoleWrite(@CRLF & ";~ + [" & $returnPart & "] PATH IN : " & $sFilePath & @CRLF)
+    ConsoleWrite(@CRLF & " + [" & $returnPart & "] PATH IN : " & $sFilePath & @CRLF)
     $sFilePath = _PathFix($sFilePath)
     Local $sDrive, $sParentDir, $sCurrentDir, $sFileNameNoExt, $sExtension, $sFileName, $sPathParentDir, $sPathCurrentDir, $sPathFileNameNoExt
     Local $aPathSplit = _SplitPath($sFilePath, $sDrive, $sParentDir, $sCurrentDir, $sFileNameNoExt, $sExtension, $sFileName, $sPathParentDir, $sPathCurrentDir, $sPathFileNameNoExt)
     ;Local $sCurrentDirPath= $sDrive&$sCurrentDir;StringRegExpReplace($aPathSplit, '\\[^\\]*$', '')
     ;Local $sCurrentDirName =StringRegExpReplace(_PathRemoveBackslash($sCurrentDirPath), '.*\\', '')
-    ConsoleWrite(";~ - [1] Drive: " & $sDrive & @CRLF)
-    ConsoleWrite(";~ - [2] ParentDir: " & $sParentDir & @CRLF)
-    ConsoleWrite(";~ - [3] CurrentDir: " & $sCurrentDir & @CRLF)
-    ConsoleWrite(";~ - [4] FileName NoExt: " & $sFileNameNoExt & @CRLF)
-    ConsoleWrite(";~ - [5] Extension: " & $sExtension & @CRLF)
-    ConsoleWrite(";~ - [6] FileName: " & $sFileName & @CRLF)
-    ConsoleWrite(";~ - [7] PathParentDir: " & $sPathParentDir & @CRLF)
-    ConsoleWrite(";~ - [8] PathCurrentDir: " & $sPathCurrentDir & @CRLF)
-    ConsoleWrite(";~ - [9] PathFileName NoExt: " & $sPathFileNameNoExt & @CRLF)
-    If (StringStripWS($sFileName, 8) == '') Then ConsoleWrite(";~ ! This path does not contain filenames and extensions!" & @CRLF)
+    ConsoleWrite("[1] Drive: " & $sDrive & @CRLF)
+    ConsoleWrite("[2] ParentDir: " & $sParentDir & @CRLF)
+    ConsoleWrite("[3] CurrentDir: " & $sCurrentDir & @CRLF)
+    ConsoleWrite("[4] FileName NoExt: " & $sFileNameNoExt & @CRLF)
+    ConsoleWrite("[5] Extension: " & $sExtension & @CRLF)
+    ConsoleWrite("[6] FileName: " & $sFileName & @CRLF)
+    ConsoleWrite("[7] PathParentDir: " & $sPathParentDir & @CRLF)
+    ConsoleWrite("[8] PathCurrentDir: " & $sPathCurrentDir & @CRLF)
+    ConsoleWrite("[9] PathFileName NoExt: " & $sPathFileNameNoExt & @CRLF)
+    If (StringStripWS($sFileName, 8) == '') Then ConsoleWrite("! This path does not contain filenames and extensions!" & @CRLF)
     Switch $returnPart
         Case 1
-            ;ConsoleWrite(";~ - [1] Drive: " & $sDrive & @CRLF)
+            ;ConsoleWrite("[1] Drive: " & $sDrive & @CRLF)
             Return $sDrive
         Case 2
-            ;ConsoleWrite(";~ - [2] ParentDir: " & $sParentDir & @CRLF)
+            ;ConsoleWrite("[2] ParentDir: " & $sParentDir & @CRLF)
             Return $sParentDir
         Case 3
-            ;ConsoleWrite(";~ - [3] CurrentDir: " & $sCurrentDir & @CRLF)
+            ;ConsoleWrite("[3] CurrentDir: " & $sCurrentDir & @CRLF)
             Return $sCurrentDir
         Case 4
-            ;ConsoleWrite(";~ - [4] FileName NoExt: " & $sFileNameNoExt & @CRLF)
+            ;ConsoleWrite("[4] FileName NoExt: " & $sFileNameNoExt & @CRLF)
             Return $sFileNameNoExt
         Case 5
-            ;ConsoleWrite(";~ - [5] Extension: " & $sExtension & @CRLF)
+            ;ConsoleWrite("[5] Extension: " & $sExtension & @CRLF)
             Return $sExtension
         Case 6
-            ;ConsoleWrite(";~ - [6] FileName: " & $sFileNameNoExt & $sExtension & @CRLF)
+            ;ConsoleWrite("[6] FileName: " & $sFileNameNoExt & $sExtension & @CRLF)
             Return $sFileName
         Case 7
-            ;ConsoleWrite(";~ - [7] PathParentDir: " & $sDrive & $sParentDir & @CRLF)
+            ;ConsoleWrite("[7] PathParentDir: " & $sDrive & $sParentDir & @CRLF)
             Return $sPathParentDir
         Case 8
-            ;ConsoleWrite(";~ - [8] PathCurrentDir: " & $sDrive & $sParentDir & $sCurrentDir & @CRLF)
+            ;ConsoleWrite("[8] PathCurrentDir: " & $sDrive & $sParentDir & $sCurrentDir & @CRLF)
             Return $sPathCurrentDir
         Case 9
-            ;ConsoleWrite(";~ - [9] PathFileName NoExt: " & $sDrive & $sParentDir & $sCurrentDir & $sFileNameNoExt & @CRLF)
+            ;ConsoleWrite("[9] PathFileName NoExt: " & $sDrive & $sParentDir & $sCurrentDir & $sFileNameNoExt & @CRLF)
             Return $sPathFileNameNoExt
         Case Else
             ConsoleWrite("! [" & $returnPart & "] PATH OUT : " & $sFilePath & @CRLF)
@@ -572,7 +568,7 @@ Func _PathGet_Part($sFilePath, $returnPart = 0)
 EndFunc   ;==>_PathGet_Part
 ; * -----:|
 Func _SplitPath($sFilePath, ByRef $sDrive, ByRef $sParentDir, ByRef $sCurrentDir, ByRef $sFileNameNoExt, ByRef $sExtension, ByRef $sFileName, ByRef $sPathParentDir, ByRef $sPathCurrentDir, ByRef $sPathFileNameNoExt)
-    ;ConsoleWrite(@CRLF & ";~ + PATH IN : " & $sFilePath & @CRLF)
+    ;ConsoleWrite(@CRLF & " + PATH IN : " & $sFilePath & @CRLF)
     $sFilePath = _PathFix($sFilePath)
     _PathSplit_Ex($sFilePath, $sDrive, $sParentDir, $sCurrentDir, $sFileNameNoExt, $sExtension)
     ;Local $sCurrentDirPath= $sDrive&$sCurrentDir;StringRegExpReplace($aPathSplit, '\\[^\\]*$', '')
