@@ -12,6 +12,7 @@
 #include <WinAPISysWin.au3>
 #include <WinAPIShPath.au3>
 #include <TrayConstants.au3>
+#include <File.au3>
 
 Opt("MustDeclareVars", 1) ;0=no, 1=require pre-declaration
 Opt("TrayAutoPause", 0) ;0=no pause, 1=Pause
@@ -128,7 +129,7 @@ AdlibRegister("_GUI_ResetStatus", 5000)
 AdlibRegister("_GUI_SwitchMsg", 50)
 AdlibRegister("_TRAY_SwitchMsg", 50)
 
-Global $__aDropFiles, $sPercent, $guiMsg, $trayMsg
+Global $__aDropFiles, $sPercent, $guiMsg, $trayMsg, $aList
 GUIRegisterMsg($WM_DROPFILES, "WM_DROPFILES")
 Global $aCmdLineRaw = StringReplace($CmdLineRaw, '/ErrorStdOut "' & @ScriptFullPath & '"', "")
 ;ConsoleWrite($aCmdLineRaw & @CRLF)
@@ -207,22 +208,18 @@ Func _Main_Processing($sFilePath, $nCurrent = 0, $nTotal = 0)
     ConsoleWrite("[8] PathCurrentDir: " & $sPathCurrentDir & @CRLF)
     ConsoleWrite("[9] PathFileName NoExt: " & $sPathFileNameNoExt & @CRLF)
     ConsoleWrite("Total selected " & $nTotal & " files. (" & $sPercent & "%)" & @CRLF)
-    If _IsFile($sFilePath) Then
-        ConsoleWrite("Processing now: (" & $nCurrent & ") " & $sFileName & @CRLF)
-        GUICtrlSetData($idLabel_Task, "Processing now: (" & $nCurrent & ") " & $sFileName)
-        ; Your file handler is here!
-    Else
-        If ($sParentDir == "\" And $sCurrentDir == "") Then ; Is Root Drive
-            ; Your drive handler is here!
-            ConsoleWrite("Processing directory: " & _PathRemove_Backslash($sPathCurrentDir) & @CRLF)
-            GUICtrlSetData($idLabel_Task, "Currently Folder: " & _PathRemove_Backslash($sCurrentDir))
-        Else
-            ; Your directory handler is here!
-            ConsoleWrite("Processing drive: " & $sDrive & @CRLF)
-            GUICtrlSetData($idLabel_Task, "Currently Drive: " & $sDrive)
-        EndIf
-    EndIf
-
+	If _IsFile($sFilePath) Then
+		ConsoleWrite("Processing now: (" & $nCurrent & ") " & $sFileName & @CRLF)
+		GUICtrlSetData($idLabel_Task, "Processing now: (" & $nCurrent & ") " & $sFileName)
+	Else
+		If IsDir($sFilePath) Then
+			$aList = _FileListToArray($sFilePath, '*', 1)
+			For $j = 1 To $aList[0]
+				ConsoleWrite("Processing now: (" & $nCurrent & ") " & $aList[$j] & @CRLF)
+				GUICtrlSetData($idLabel_Task, "Processing now: (" & $nCurrent & ") " & $aList[$j])
+			Next
+		EndIf
+	EndIf
     ; Code section for GUI testing only
     GUICtrlSetData($idProgress_Current, 40)
     Sleep(100) ; test gui
@@ -651,3 +648,6 @@ Func _GuiRoundCorners($hWnd, $iLeftRect, $iTopRect, $iWidthEllipse, $iHeightElli
     Return 0
 EndFunc   ;==>_GuiRoundCorners
 ; * -----:|
+Func IsDir($sFilePath)
+	Return StringInStr(FileGetAttrib($sFilePath), "D") > 0
+EndFunc   ;==>IsDir
