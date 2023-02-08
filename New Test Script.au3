@@ -160,31 +160,62 @@ Else
                 ; Display an open dialog to select files.
                 Local $zListFileIN, $zFileIN = FileOpenDialog("Select Files", @WorkingDir, "All File (*)", $FD_FILEMUSTEXIST + $FD_MULTISELECT, "", $hGUI) ;1+4
                 If Not @error Then
-                    If StringInStr($zFileIN, "|") Then
+;                    If StringInStr($zFileIN, "|") Then
                         $zListFileIN = StringSplit($zFileIN, "|")
                         If IsArray($zListFileIN) Then
                             For $i = 2 To $zListFileIN[0]
                                 _Main_Processing($zListFileIN[$i], $i - 1, $zListFileIN[0] - 1)
                             Next
                         EndIf
-                    Else
-                        _Main_Processing($zFileIN, 1, 1)
-                    EndIf
+;                    Else
+;                        _Main_Processing($zFileIN, 1, 1)
+;                    EndIf
                 EndIf
                 _GUI_OnStandby()
             Case $GUI_EVENT_DROPPED
                 _GUI_OnProgress()
-                If $__aDropFiles[0] > 0 Then
-                    For $i = 1 To $__aDropFiles[0]
-                        _Main_Processing($__aDropFiles[$i], $i, $__aDropFiles[0])
-                    Next
-                EndIf
+If $__aDropFiles[0] > 0 Then
+	If $__aDropFiles[0] = 1 Then
+		If FileExists($__aDropFiles[1]) Then
+			_Main_Processing($__aDropFiles[1], 1, 1, 1)
+		Else
+			_GetFilesInFolder($__aDropFiles[1], $__aDropFiles, 1)
+		EndIf
+	Else
+		For $i = 1 To $__aDropFiles[0]
+			If FileExists($__aDropFiles[$i]) Then
+				_Main_Processing($__aDropFiles[$i], $i, $__aDropFiles[0])
+			Else
+				_GetFilesInFolder($__aDropFiles[$i], $__aDropFiles, $i)
+			EndIf
+		Next
+	EndIf
+EndIf
                 _GUI_OnStandby()
         EndSwitch
         ;_TRAY_SwitchMsg()
     WEnd
 EndIf
 ; * -----:|
+
+Func _GetFilesInFolder($sFolderPath, ByRef $aDropFiles, $iCurrentIndex)
+	Local $aFilesInFolder = _FileListToArray($sFolderPath & "\*.*", 0)
+	If IsArray($aFilesInFolder) Then
+		For $i = 1 To $aFilesInFolder[0]
+			If FileExists($sFolderPath & "\" & $aFilesInFolder[$i]) Then
+				ReDim $aDropFiles[$iCurrentIndex + $i - 1]
+				$aDropFiles[$iCurrentIndex + $i - 1] = $sFolderPath & "\" & $aFilesInFolder[$i]
+			EndIf
+		Next
+		$aDropFiles[0] = $aDropFiles[0] + $aFilesInFolder[0] - 1
+	EndIf
+	ReDim $aDropFiles[$iCurrentIndex - 1]
+	For $i = $iCurrentIndex To $aDropFiles[0]
+		$aDropFiles[$i] = $aDropFiles[$i + 1]
+	Next
+	$aDropFiles[0] = $aDropFiles[0] - 1
+EndFunc
+
 Func _Main_Processing($sFilePath, $nCurrent = 0, $nTotal = 0)
     ;_GUI_SwitchMsg()
     ;_TRAY_SwitchMsg()
@@ -208,18 +239,24 @@ Func _Main_Processing($sFilePath, $nCurrent = 0, $nTotal = 0)
     ConsoleWrite("[8] PathCurrentDir: " & $sPathCurrentDir & @CRLF)
     ConsoleWrite("[9] PathFileName NoExt: " & $sPathFileNameNoExt & @CRLF)
     ConsoleWrite("Total selected " & $nTotal & " files. (" & $sPercent & "%)" & @CRLF)
-	If _IsFile($sFilePath) Then
-		ConsoleWrite("Processing now: (" & $nCurrent & ") " & $sFileName & @CRLF)
-		GUICtrlSetData($idLabel_Task, "Processing now: (" & $nCurrent & ") " & $sFileName)
-	Else
+    If _IsFile($sFilePath) Then
+        ConsoleWrite("Processing now: (" & $nCurrent & ") " & $sFileName & @CRLF)
+        GUICtrlSetData($idLabel_Task, "Processing now: (" & $nCurrent & ") " & $sFileName)
+        ; Your file handler is here!
+    Else
 		If IsDir($sFilePath) Then
-			$aList = _FileListToArray($sFilePath, '*', 1)
-			For $j = 1 To $aList[0]
-				ConsoleWrite("Processing now: (" & $nCurrent & ") " & $aList[$j] & @CRLF)
-				GUICtrlSetData($idLabel_Task, "Processing now: (" & $nCurrent & ") " & $aList[$j])
-			Next
-		EndIf
+            $aList = _FileListToArray($sFilePath, '*', $FLTA_FILES)
+            If not @error then
+                For $i = 1 To $aList[0]
+                    ConsoleWrite("Processing now: (" & $i & ") " & $aList[$i] & @CRLF)
+                    GUICtrlSetData($idLabel_Task, "Processing now: (" & $i & ") " & $aList[$i])
+                Next
+            Else
+              ConsoleWrite("No file found in directory " & $sFilePath)
+            EndIf
+        EndIf
 	EndIf
+
     ; Code section for GUI testing only
     GUICtrlSetData($idProgress_Current, 40)
     Sleep(100) ; test gui
@@ -386,188 +423,6 @@ Func _IsFile($sPath)
         Return SetError(0, 0, 1)
     EndIf
 EndFunc   ;==>_IsFile
-Func _DelIt($sPath, $Fc = 1)
-    If (Not FileExists($sPath)) Then Return SetError(-1, 0, 1)
-    If _IsFile($sPath) Then
-        Return SetError(0, 0, _DelFile($sPath, $Fc))
-    Else
-        Return SetError(0, 0, _RemoveDir($sPath, $Fc))
-    EndIf
-EndFunc   ;==>_DelIt
-Func _DelFile($sPath, $Fc = 1)
-    If (Not _IsFile($sPath)) Then
-        Return SetError(-1, 0, 0)
-    Else
-        ConsoleWrite("> DelFile: " & $sPath & @CRLF)
-        FileSetAttrib($sPath, "-RSH")
-        FileDelete($sPath)
-        If $Fc Then
-            If FileExists($sPath) Then _TakeOwnership($sPath, "Everyone", $Fc)
-            If FileExists($sPath) Then FileDelete($sPath)
-            If FileExists($sPath) Then RunWait(@ComSpec & ' /c Del /f /q "' & $sPath & '"', '', @SW_HIDE)
-        EndIf
-        If FileExists($sPath) Then Return SetError(1, 0, 0)
-        Return SetError(0, 0, 1)
-    EndIf
-EndFunc   ;==>_DelFile
-Func _RemoveDir($sPath, $Fc = 1)
-    If _IsFile($sPath) Then
-        Return SetError(-1, 0, 0)
-    Else
-        ConsoleWrite("> _RemoveDir: " & $sPath & @CRLF)
-        DirRemove($sPath, $Fc)
-        If FileExists($sPath) Then _TakeOwnership($sPath, "Everyone", $Fc)
-        DirRemove($sPath, $Fc)
-        If FileExists($sPath) Then RunWait(@ComSpec & ' /c rmdir "' & $sPath & '" /s /q ', '', @SW_HIDE)
-        If FileExists($sPath) Then Return SetError(1, 0, 0)
-        Return SetError(0, 0, 1)
-    EndIf
-EndFunc   ;==>_RemoveDir
-Func _Directory_Is_Accessible($sPath, $iTouch = 0)
-    If Not FileExists($sPath) Then DirCreate($sPath)
-    If Not StringInStr(FileGetAttrib($sPath), "D", 2) Then Return SetError(1, 0, 0)
-    Local $iEnum = 0, $maxEnum = 9999, $iRandom = Random(88888888, 99999999, 1)
-    If $iTouch Then _TakeOwnership($sPath, "Everyone", 1)
-    While FileExists($sPath & "\_IsWritable-" & $iEnum & "-" & $iRandom)
-        $iEnum += 1
-        If ($iEnum > $maxEnum) Then Return SetError(2, 0, 0)
-    WEnd
-    Local $iSuccess = DirCreate($sPath & "\_IsWritable-" & $iEnum & "-" & $iRandom)
-    Switch $iSuccess
-        Case 1
-            $iTouch = DirRemove($sPath & "\_IsWritable-" & $iEnum & "-" & $iRandom, 1)
-            Return SetError($iTouch < 1, 0, $iTouch)
-        Case Else
-            Return SetError(3, 0, 0)
-    EndSwitch
-EndFunc   ;==>_Directory_Is_Accessible
-Func _File_Is_Accessible($sFile, $iTouch = 0)
-    If ((Not FileExists("\\?\" & $sFile)) Or StringInStr(FileGetAttrib("\\?\" & $sFile), "D", 2)) Then Return SetError(1, 0, 0)
-    Local $oFileAttrib = FileGetAttrib("\\?\" & $sFile)
-    If $iTouch Then
-        FileSetAttrib("\\?\" & $sFile, "-RHS")
-        _TakeOwnership($sFile, "Everyone", 1)
-    EndIf
-    If StringInStr(FileGetAttrib("\\?\" & $sFile), "R", 2) Then Return 3
-    Local $hFile = __WinAPI_CreateFileEx("\\?\" & $sFile, 3, 0x80000000 + 0x40000000, 0x00000001 + 0x00000002 + 0x00000004, 0x02000000)
-    Local $iReturn = $hFile
-    __WinAPI_CloseHandle($hFile)
-    If ($iReturn = 0) Then Return 2
-    Return 1
-EndFunc   ;==>_File_Is_Accessible
-Func _TakeOwnership($sFile, $iUserName = "Everyone", $sRecurse = 1)
-    If ($iUserName = Default) Or (StringStripWS($iUserName, 8) = '') Then $iUserName = "Everyone"
-    If ($sRecurse = Default) Or ($sRecurse = True) Or ($sRecurse > 0) Then
-        $sRecurse = 1
-    Else
-        $sRecurse = 0
-    EndIf
-    Local $osNotIsEnglish = True
-    Switch @OSLang
-        Case "0009", "0409", "0809", "0C09", "1009", "1409", "1809", "1C09", "2009", "2409", "2809", "2C09", "3009", "3409", "3C09", "4009", "4409", "4809", "4C09"
-            $osNotIsEnglish = False
-        Case "3809", "5009", "5409", "5809", "5C09", "6009", "6409"
-            $osNotIsEnglish = False
-    EndSwitch
-    If StringInStr($iUserName, ' ') Then $iUserName = '"' & $iUserName & '"'
-    If ($sRecurse = Default) Then $sRecurse = 1
-    If Not FileExists($sFile) Then Return SetError(1, 0, $sFile)
-    If StringInStr(FileGetAttrib($sFile), 'D') <> 0 Then
-        If $sRecurse Then
-            RunWait(@ComSpec & ' /c takeown /f "' & $sFile & '" /R /D Y', '', @SW_HIDE)
-            If $iUserName <> 'Administrators' Then RunWait(@ComSpec & ' /c Echo y|Cacls "' & $sFile & '" /T /C /G Administrators:F', '', @SW_HIDE)
-            If $iUserName <> 'Users' Then RunWait(@ComSpec & ' /c Echo y|Cacls "' & $sFile & '" /T /C /G Users:F', '', @SW_HIDE)
-            RunWait(@ComSpec & ' /c Echo y|Cacls "' & $sFile & '" /T /C /G ' & $iUserName & ':F', '', @SW_HIDE)
-            If $osNotIsEnglish Then
-                If ($iUserName = "Everyone") Then $iUserName = '*S-1-1-0'
-                If ($iUserName = '"' & 'Authenticated Users' & '"') Then $iUserName = '*S-1-5-11'
-            EndIf
-            If $iUserName <> 'Administrators' Then RunWait(@ComSpec & ' /c iCacls "' & $sFile & '" /grant Administrators:F /T /C /Q', '', @SW_HIDE)
-            If $iUserName <> 'Users' Then RunWait(@ComSpec & ' /c iCacls "' & $sFile & '" /grant Users:F /T /C /Q', '', @SW_HIDE)
-            RunWait(@ComSpec & ' /c iCacls "' & $sFile & '" /grant ' & $iUserName & ':F /T /C /Q', '', @SW_HIDE)
-            Return SetError(0, 0, FileSetAttrib($sFile, "-RHS", 1))
-        Else
-            RunWait(@ComSpec & ' /c takeown /f "' & $sFile & '" ', '', @SW_HIDE)
-            If $iUserName <> 'Administrators' Then RunWait(@ComSpec & ' /c Echo y|Cacls "' & $sFile & '" /C /G Administrators:F', '', @SW_HIDE)
-            If $iUserName <> 'Users' Then RunWait(@ComSpec & ' /c Echo y|Cacls "' & $sFile & '" /C /G Users:F', '', @SW_HIDE)
-            RunWait(@ComSpec & ' /c Echo y|Cacls "' & $sFile & '" /C /G ' & $iUserName & ':F', '', @SW_HIDE)
-            If $osNotIsEnglish Then
-                If ($iUserName = "Everyone") Then $iUserName = '*S-1-1-0'
-                If ($iUserName = '"' & 'Authenticated Users' & '"') Then $iUserName = '*S-1-5-11'
-            EndIf
-            If $iUserName <> 'Administrators' Then RunWait(@ComSpec & ' /c iCacls "' & $sFile & '" /grant Administrators:F /C /Q', '', @SW_HIDE)
-            If $iUserName <> 'Users' Then RunWait(@ComSpec & ' /c iCacls "' & $sFile & '" /grant Users:F /C /Q', '', @SW_HIDE)
-            RunWait(@ComSpec & ' /c iCacls "' & $sFile & '" /grant ' & $iUserName & ':F /C /Q', '', @SW_HIDE)
-            Return SetError(0, 0, FileSetAttrib($sFile, "-RHS", 0))
-        EndIf
-    Else
-        RunWait(@ComSpec & ' /c takeown /f "' & $sFile & '"', '', @SW_HIDE)
-        If $iUserName <> 'Administrators' Then RunWait(@ComSpec & ' /c Echo y|Cacls "' & $sFile & '" /C /G Administrators:F', '', @SW_HIDE)
-        If $iUserName <> 'Users' Then RunWait(@ComSpec & ' /c Echo y|Cacls "' & $sFile & '" /C /G Users:F', '', @SW_HIDE)
-        RunWait(@ComSpec & ' /c Echo y|Cacls "' & $sFile & '" /C /G ' & $iUserName & ':F', '', @SW_HIDE)
-        If $osNotIsEnglish Then
-            If ($iUserName = "Everyone") Then $iUserName = '*S-1-1-0'
-            If ($iUserName = '"' & 'Authenticated Users' & '"') Then $iUserName = '*S-1-5-11'
-        EndIf
-        If $iUserName <> 'Administrators' Then RunWait(@ComSpec & ' /c iCacls "' & $sFile & '" /grant Administrators:F /Q', '', @SW_HIDE)
-        If $iUserName <> 'Users' Then RunWait(@ComSpec & ' /c iCacls "' & $sFile & '" /grant Users:F /Q', '', @SW_HIDE)
-        RunWait(@ComSpec & ' /c iCacls "' & $sFile & '" /grant ' & $iUserName & ':F /Q', '', @SW_HIDE)
-        Return SetError(0, 0, FileSetAttrib($sFile, "-RHS"))
-    EndIf
-    Return $sFile
-EndFunc   ;==>_TakeOwnership
-; * -----:|
-Func _PathGet_Part($sFilePath, $returnPart = 0)
-    ConsoleWrite(@CRLF & ";~ + [" & $returnPart & "] PATH IN : " & $sFilePath & @CRLF)
-    $sFilePath = _PathFix($sFilePath)
-    Local $sDrive, $sParentDir, $sCurrentDir, $sFileNameNoExt, $sExtension, $sFileName, $sPathParentDir, $sPathCurrentDir, $sPathFileNameNoExt
-    Local $aPathSplit = _SplitPath($sFilePath, $sDrive, $sParentDir, $sCurrentDir, $sFileNameNoExt, $sExtension, $sFileName, $sPathParentDir, $sPathCurrentDir, $sPathFileNameNoExt)
-    ;Local $sCurrentDirPath= $sDrive&$sCurrentDir;StringRegExpReplace($aPathSplit, '\\[^\\]*$', '')
-    ;Local $sCurrentDirName =StringRegExpReplace(_PathRemoveBackslash($sCurrentDirPath), '.*\\', '')
-    ConsoleWrite(";~ - [1] Drive: " & $sDrive & @CRLF)
-    ConsoleWrite(";~ - [2] ParentDir: " & $sParentDir & @CRLF)
-    ConsoleWrite(";~ - [3] CurrentDir: " & $sCurrentDir & @CRLF)
-    ConsoleWrite(";~ - [4] FileName NoExt: " & $sFileNameNoExt & @CRLF)
-    ConsoleWrite(";~ - [5] Extension: " & $sExtension & @CRLF)
-    ConsoleWrite(";~ - [6] FileName: " & $sFileName & @CRLF)
-    ConsoleWrite(";~ - [7] PathParentDir: " & $sPathParentDir & @CRLF)
-    ConsoleWrite(";~ - [8] PathCurrentDir: " & $sPathCurrentDir & @CRLF)
-    ConsoleWrite(";~ - [9] PathFileName NoExt: " & $sPathFileNameNoExt & @CRLF)
-    If (StringStripWS($sFileName, 8) == '') Then ConsoleWrite(";~ ! This path does not contain filenames and extensions!" & @CRLF)
-    Switch $returnPart
-        Case 1
-            ;ConsoleWrite(";~ - [1] Drive: " & $sDrive & @CRLF)
-            Return $sDrive
-        Case 2
-            ;ConsoleWrite(";~ - [2] ParentDir: " & $sParentDir & @CRLF)
-            Return $sParentDir
-        Case 3
-            ;ConsoleWrite(";~ - [3] CurrentDir: " & $sCurrentDir & @CRLF)
-            Return $sCurrentDir
-        Case 4
-            ;ConsoleWrite(";~ - [4] FileName NoExt: " & $sFileNameNoExt & @CRLF)
-            Return $sFileNameNoExt
-        Case 5
-            ;ConsoleWrite(";~ - [5] Extension: " & $sExtension & @CRLF)
-            Return $sExtension
-        Case 6
-            ;ConsoleWrite(";~ - [6] FileName: " & $sFileNameNoExt & $sExtension & @CRLF)
-            Return $sFileName
-        Case 7
-            ;ConsoleWrite(";~ - [7] PathParentDir: " & $sDrive & $sParentDir & @CRLF)
-            Return $sPathParentDir
-        Case 8
-            ;ConsoleWrite(";~ - [8] PathCurrentDir: " & $sDrive & $sParentDir & $sCurrentDir & @CRLF)
-            Return $sPathCurrentDir
-        Case 9
-            ;ConsoleWrite(";~ - [9] PathFileName NoExt: " & $sDrive & $sParentDir & $sCurrentDir & $sFileNameNoExt & @CRLF)
-            Return $sPathFileNameNoExt
-        Case Else
-            ConsoleWrite("! [" & $returnPart & "] PATH OUT : " & $sFilePath & @CRLF)
-            Return $sFilePath
-    EndSwitch
-EndFunc   ;==>_PathGet_Part
-; * -----:|
 Func _SplitPath($sFilePath, ByRef $sDrive, ByRef $sParentDir, ByRef $sCurrentDir, ByRef $sFileNameNoExt, ByRef $sExtension, ByRef $sFileName, ByRef $sPathParentDir, ByRef $sPathCurrentDir, ByRef $sPathFileNameNoExt)
     ;ConsoleWrite(@CRLF & ";~ + PATH IN : " & $sFilePath & @CRLF)
     $sFilePath = _PathFix($sFilePath)
@@ -617,23 +472,6 @@ Func _PathRemove_Backslash($sPath)
     EndIf
     Return $sPath
 EndFunc   ;==>_PathRemove_Backslash
-; * -----:|
-Func __WinAPI_GetLastError(Const $_iCallerError = @error, Const $_iCallerExtended = @extended)
-    Local $aCall = DllCall("kernel32.dll", "dword", "GetLastError")
-    Return SetError($_iCallerError, $_iCallerExtended, $aCall[0])
-EndFunc   ;==>__WinAPI_GetLastError
-Func __WinAPI_CreateFileEx($sFilePath, $iCreation, $iAccess = 0, $iShare = 0, $iFlagsAndAttributes = 0, $tSecurity = 0, $hTemplate = 0)
-    Local $aCall = DllCall('kernel32.dll', 'handle', 'CreateFileW', 'wstr', $sFilePath, 'dword', $iAccess, 'dword', $iShare, 'struct*', $tSecurity, 'dword', $iCreation, 'dword', $iFlagsAndAttributes, 'handle', $hTemplate)
-    If @error Then Return SetError(@error, @extended, 0)
-    If $aCall[0] = Ptr(-1) Then Return SetError(10, __WinAPI_GetLastError(), 0)
-    Return $aCall[0]
-EndFunc   ;==>__WinAPI_CreateFileEx
-Func __WinAPI_CloseHandle($hObject)
-    Local $aCall = DllCall("kernel32.dll", "bool", "CloseHandle", "handle", $hObject)
-    If @error Then Return SetError(@error, @extended, False)
-    Return $aCall[0]
-EndFunc   ;==>__WinAPI_CloseHandle
-; * -----:|
 Func _GuiRoundCorners($hWnd, $iLeftRect, $iTopRect, $iWidthEllipse, $iHeightEllipse)
     Local $aPos = 0, $aRet = 0
 
