@@ -1,5 +1,5 @@
 #Region ;**** Directives created by AutoIt3Wrapper_GUI ****
-#AutoIt3Wrapper_Change2CUI=y
+#AutoIt3Wrapper_Icon=faviconO.ico
 #EndRegion ;**** Directives created by AutoIt3Wrapper_GUI ****
 #include <ButtonConstants.au3>
 #include <GUIConstantsEx.au3>
@@ -13,7 +13,6 @@
 #include <WinAPIShPath.au3>
 #include <TrayConstants.au3>
 #include <GuiListBox.au3>
-#include <Array.au3>
 #include <GuiListView.au3>
 
 Opt("MustDeclareVars", 1) ;0=no, 1=require pre-declaration
@@ -25,51 +24,100 @@ Global $trayExit = TrayCreateItem("Exit")
 TraySetState($TRAY_ICONSTATE_SHOW) ; Show the tray menu.
 
 Global Const $sGUI_Show_Title = 0
-Global Const $sAppName = "- Drag and drop -"
-Global Const $sLabel_Title = "Drag and drop files and folders HERE !"
+Global Const $sAppName = "- Images to PDF & ZIP -"
+Global Const $sLabel_Title = "Drag and drop files and folders"
 Global Const $sLabel_Task = "Or click the button to browse."
 Global Const $sLabel_Status = "READY !"
 
 #Region ### START GUI section ###
+Local $SplashScreenGui = GUICreate("SplashScreen", 600, 360, -1, -1, $WS_POPUP)
+WinSetTrans($SplashScreenGui, "", 170)
+Local $Pic1 = GUICtrlCreatePic("splash.gif", 0, 0, 600, 360)
+GUISetState(@SW_SHOW, $SplashScreenGui)
+Sleep(3000)
+GUISetState(@SW_HIDE, $SplashScreenGui)
 Global $hGUI
 If $sGUI_Show_Title Then
-	$hGUI = GUICreate($sAppName, 600, 280, -1, -1, -1, BitOR($WS_EX_ACCEPTFILES, $WS_EX_TOPMOST, $WS_EX_WINDOWEDGE))
+	$hGUI = GUICreate($sAppName, 600, 313, -1, -1, -1, BitOR($WS_EX_ACCEPTFILES, $WS_EX_TOPMOST, $WS_EX_WINDOWEDGE))
 Else
-	$hGUI = GUICreate($sAppName, 600, 280, -1, -1, BitOR($WS_POPUP, $WS_BORDER), BitOR($WS_EX_ACCEPTFILES, $WS_EX_TOPMOST, $WS_EX_WINDOWEDGE))
+	$hGUI = GUICreate($sAppName, 600, 313, -1, -1, BitOR($WS_POPUP, $WS_BORDER), BitOR($WS_EX_ACCEPTFILES, $WS_EX_TOPMOST, $WS_EX_WINDOWEDGE))
 EndIf
+_WinAPI_DwmSetWindowAttribute($hGUI, 33, 2)
 GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
-Global $idLabel_BG = GUICtrlCreateLabel("", 66, 0, 400, 81, -1, $GUI_WS_EX_PARENTDRAG)
+Global $idLabel_BG = GUICtrlCreateLabel($sAppName, 0, 5, 600, 32, BitOR($SS_CENTER, $SS_CENTERIMAGE, $SS_NOPREFIX), $GUI_WS_EX_PARENTDRAG)
+GUICtrlSetFont(-1, 18, 600, 4, "Grab Community EN v2.0 Inline", 5)
 GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
-Global $idIcon = GUICtrlCreateIcon(@WindowsDir & "\explorer.exe", -19, 1, 8, 64, 64, BitOR($GUI_SS_DEFAULT_ICON, $SS_CENTERIMAGE))
+Global $idProgress_Total = GUICtrlCreateProgress(0, 42, 600, 5)
+GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
+Global $idIcon = GUICtrlCreateIcon(@WorkingDir & "\favicon.ico", -1, 10, 50, 113, 68, BitOR($GUI_SS_DEFAULT_ICON, $SS_CENTERIMAGE))
 GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
 GUICtrlSetTip(-1, "Set/UnSet Windows on TOP")
-Global $idLabel_Titles = GUICtrlCreateLabel($sLabel_Title, 69, 10, 396, 17, $SS_CENTERIMAGE, $GUI_WS_EX_PARENTDRAG)
+Global $idLabel_Status = GUICtrlCreateLabel($sLabel_Status, 134, 75, 180, 18, BitOR($SS_CENTER, $SS_CENTERIMAGE), $GUI_WS_EX_PARENTDRAG)
 GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
-Global $idLabel_Task = GUICtrlCreateLabel($sLabel_Task, 69, 34, 396, 17, $SS_CENTERIMAGE, $GUI_WS_EX_PARENTDRAG)
+GUICtrlSetFont(-1, 8.5, 400, 0, "Ubuntu", 5)
+GUIStartGroup()
+Global $idButton_pdf = GUICtrlCreateRadio("PDF", 324, 52, 40, 18, BitOR($BS_AUTORADIOBUTTON, $BS_VCENTER), $GUI_WS_EX_PARENTDRAG)
 GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
-Global $idLabel_Status = GUICtrlCreateLabel($sLabel_Status, 69, 58, 396, 17, BitOR($SS_CENTER, $SS_CENTERIMAGE), $GUI_WS_EX_PARENTDRAG)
+Global $idButton_both = GUICtrlCreateRadio("Both", 324, 75, 40, 18, BitOR($BS_AUTORADIOBUTTON, $BS_VCENTER), $GUI_WS_EX_PARENTDRAG)
+GUICtrlSetState($idButton_both, $GUI_CHECKED)
 GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
-Global $idButton_BrowseFiles = GUICtrlCreateButton("Browse &files", 472, 8, 99, 33, BitOR($BS_CENTER, $BS_VCENTER, $BS_FLAT))
+Global $idButton_zip = GUICtrlCreateRadio("ZIP", 324, 98, 40, 18, BitOR($BS_AUTORADIOBUTTON, $BS_VCENTER), $GUI_WS_EX_PARENTDRAG)
 GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
-Global $idButton_SelectFolder = GUICtrlCreateButton("Select fol&der", 472, 43, 99, 30, BitOR($BS_CENTER, $BS_VCENTER, $BS_FLAT))
+Global $idInput_term = GUICtrlCreateInput("", 374, 52, 40, 18)
 GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
-Global $idButton_Close = GUICtrlCreateButton("x", 579, 8, 17, 17, BitOR($BS_CENTER, $BS_VCENTER, $BS_FLAT))
+GUIStartGroup()
+Global $idButton_Incl = GUICtrlCreateRadio("Incl.", 374, 75, 40, 18, BitOR($BS_AUTORADIOBUTTON, $BS_VCENTER), $GUI_WS_EX_PARENTDRAG)
+GUICtrlSetState($idButton_Incl, $GUI_CHECKED)
+GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
+Global $idButton_Excl = GUICtrlCreateRadio("Excl.", 374, 98, 40, 18, BitOR($BS_AUTORADIOBUTTON, $BS_VCENTER), $GUI_WS_EX_PARENTDRAG)
+GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
+Global $idButton_BrowseFiles = GUICtrlCreateButton("Browse" & @CRLF & "&files", 424, 52, 64, 64, BitOR($BS_CENTER, $BS_VCENTER, $BS_MULTILINE, $BS_FLAT))
+GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
+GUICtrlSetFont(-1, 8.5, 400, 0, "Ubuntu", 5)
+Global $idButton_SelectFolder = GUICtrlCreateButton("Select" & @CRLF & "fol&der", 498, 52, 64, 64, BitOR($BS_CENTER, $BS_VCENTER, $BS_MULTILINE, $BS_FLAT))
+GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
+GUICtrlSetFont(-1, 8.5, 400, 0, "Ubuntu", 5)
+Global $idButton_Close = GUICtrlCreateButton("X", 572, 52, 18, 18, BitOR($BS_CENTER, $BS_VCENTER, $BS_FLAT))
 GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
 GUICtrlSetTip(-1, "Exit")
-Global $idButton_About = GUICtrlCreateButton("A", 579, 34, 17, 17, BitOR($BS_CENTER, $BS_VCENTER, $BS_FLAT))
+GUICtrlSetFont(-1, 8.5, 400, 0, "Ubuntu", 5)
+Global $idButton_About = GUICtrlCreateButton("A", 572, 75, 18, 18, BitOR($BS_CENTER, $BS_VCENTER, $BS_FLAT))
 GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
 GUICtrlSetTip(-1, "Show About")
-Global $idButton_Minimizes = GUICtrlCreateButton("-", 579, 58, 17, 17, BitOR($BS_CENTER, $BS_VCENTER, $BS_FLAT))
+GUICtrlSetFont(-1, 8.5, 400, 0, "Ubuntu", 5)
+Global $idButton_Minimizes = GUICtrlCreateButton("-", 572, 98, 18, 18, BitOR($BS_CENTER, $BS_VCENTER, $BS_FLAT))
 GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
 GUICtrlSetTip(-1, "Minimizes Windows")
-Global $idProgress_Total = GUICtrlCreateProgress(1, 1, 596, 4)
+GUICtrlSetFont(-1, 8.5, 400, 0, "Ubuntu", 5)
+Global $idProgress_Current = GUICtrlCreateProgress(0, 121, 600, 5)
 GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
-Global $idProgress_Current = GUICtrlCreateProgress(1, 75, 596, 4)
+Global $idLabel_Titles = GUICtrlCreateLabel($sLabel_Title, 0, 131, 600, 18, BitOR($SS_CENTER, $SS_CENTERIMAGE), $GUI_WS_EX_PARENTDRAG)
 GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
-Global $idListFiles = GUICtrlCreateList("", 0, 81, 600, 200)
+GUICtrlSetFont(-1, 8.5, 400, 0, "Ubuntu", 5)
+Global $idLabel_Task = GUICtrlCreateLabel($sLabel_Task, 0, 154, 600, 18, BitOR($SS_CENTER, $SS_CENTERIMAGE), $GUI_WS_EX_PARENTDRAG)
+GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
+GUICtrlSetFont(-1, 8.5, 400, 0, "Ubuntu", 5)
+Global $idListFiles = GUICtrlCreateList("", 0, 177, 600, 136)
+Global $idListFiles_Handle = GUICtrlGetHandle(-1)
 Global $cDrop_Dummy = GUICtrlCreateDummy() ;Dummy control recieves notifications on filedrop
-Global $hGUI_AccelTable[6][2] = [["^1", $idButton_About], ["^2", $idButton_BrowseFiles], ["^3", $idButton_SelectFolder], ["^4", $idButton_Close], ["^5", $idIcon], ["^6", $idButton_Minimizes]]
+Global $hGUI_AccelTable[7][2] = [["^1", $idButton_About], ["^2", $idButton_BrowseFiles], ["^3", $idButton_SelectFolder], ["^4", $idButton_Close], ["^5", $idIcon], ["^6", $idButton_Minimizes], ["^7", $idInput_term]]
 GUISetAccelerators($hGUI_AccelTable, $hGUI)
+
+Global $hGUI_Child = GUICreate("About", 400, 200, -1, -1, $WS_POPUP, $WS_EX_TOPMOST, $hGUI)
+;GUISetBkColor(0x000000, $hGUI_Child)
+GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
+
+Local $idLabelAbout1 = GUICtrlCreateLabel("The author disclaims copyright to this source code." & @CRLF & "In place of a legal notice, here is a blessing:", 10, 40, 380, 45, BitOR($SS_CENTER, $BS_MULTILINE))
+;GUICtrlSetColor($idLabelAbout1, 0xFFFFFF)
+GUICtrlSetFont(-1, 11, 400, 4, "Ubuntu", 5)
+Local $idLabelAbout2 = GUICtrlCreateLabel("May you do good and not evil." & @CRLF & "May you find forgiveness for yourself and forgive others." & @CRLF & "May you share freely, never taking more than you give.", 25, 85, 350, 120)
+;GUICtrlSetColor($idLabelAbout2, 0xFFFFFF)
+GUICtrlSetFont(-1, 11, 400, 0, "Ubuntu", 5)
+_GuiRoundCorners($hGUI_Child, 0, 0, 7, 7)
+WinSetTrans($hGUI_Child, "", 0)
+GUISetState(@SW_HIDE, $hGUI_Child)
+Global $iExStyle = _WinAPI_GetWindowLong($idListFiles_Handle, $GWL_EXSTYLE)
+GUICtrlSetStyle($idListFiles, BitXOR($iExStyle, $WS_EX_CLIENTEDGE))
 #EndRegion ### START GUI section ###
 HotKeySet('^5', '_GUI_SetOnTop')
 Global $GuiOnTop = 0, $onWorking = 0
@@ -124,50 +172,127 @@ Else
 EndIf
 ; * -----:|
 Func _BrowseFiles()
-	Local $zListFileIN, $zFileIN = FileOpenDialog("Select Files", @WorkingDir, "All File (*)", $FD_FILEMUSTEXIST + $FD_MULTISELECT, "", $hGUI)             ;1+4
-	If Not @error Then
-		If StringInStr($zFileIN, "|") Then
-			$zListFileIN = StringSplit($zFileIN, "|")
-			For $i = 2 To $zListFileIN[0]
-				GUICtrlSetData($idListFiles, $zListFileIN[1] & "\" & $zListFileIN[$i])
-			Next
-		Else
-			GUICtrlSetData($idListFiles, $zFileIN)
+	If BitAND(GUICtrlRead($idButton_Incl), $GUI_CHECKED) = $GUI_CHECKED Then
+		Local $zListFileIN, $zFileIN = FileOpenDialog("Select Files", @WorkingDir, "All JPG File (*.jpg)", $FD_FILEMUSTEXIST + $FD_MULTISELECT, "", $hGUI) ;1+4
+		If Not @error Then
+			If StringInStr($zFileIN, "|") Then
+				$zListFileIN = StringSplit($zFileIN, "|")
+				For $i = 2 To $zListFileIN[0]
+					If StringInStr($zListFileIN[$i], GUICtrlRead($idInput_term)) Then
+						GUICtrlSetData($idListFiles, $zListFileIN[1] & "\" & $zListFileIN[$i])
+					EndIf
+				Next
+			Else
+				If StringInStr($zFileIN, GUICtrlRead($idInput_term)) Then
+					GUICtrlSetData($idListFiles, $zFileIN)
+				EndIf
+			EndIf
 		EndIf
+		ListUpdate()
+	ElseIf BitAND(GUICtrlRead($idButton_Excl), $GUI_CHECKED) = $GUI_CHECKED Then
+		Local $zListFileIN, $zFileIN = FileOpenDialog("Select Files", @WorkingDir, "All JPG File (*.jpg)", $FD_FILEMUSTEXIST + $FD_MULTISELECT, "", $hGUI) ;1+4
+		If Not @error Then
+			If StringInStr($zFileIN, "|") Then
+				$zListFileIN = StringSplit($zFileIN, "|")
+				For $i = 2 To $zListFileIN[0]
+					If Not StringInStr($zListFileIN[$i], GUICtrlRead($idInput_term)) Then
+						GUICtrlSetData($idListFiles, $zListFileIN[1] & "\" & $zListFileIN[$i])
+					EndIf
+				Next
+			Else
+				If Not StringInStr($zFileIN, GUICtrlRead($idInput_term)) Then
+					GUICtrlSetData($idListFiles, $zFileIN)
+				EndIf
+			EndIf
+		EndIf
+		ListUpdate()
 	EndIf
-	ListUpdate()
 EndFunc   ;==>_BrowseFiles
 Func _BrowseFolders()
-	Local $zFolderIN = FileSelectFolder("Select a folder", "", Default, Default, $hGUI)
-	If Not @error Then
-		Local $aList[1000][2] = [[0]] ;[FileName][FileSz]
-		Find_AllFiles($zFolderIN, $aList, 100)             ;Recursively finds files
-		For $i = 1 To $aList[0][0]             ;Dumps found files to listview
-			GUICtrlSetData($idListFiles, $aList[$i][0])
-		Next
+	If BitAND(GUICtrlRead($idButton_Incl), $GUI_CHECKED) = $GUI_CHECKED Then
+		Local $zFolderIN = FileSelectFolder("Select a folder", "", Default, Default, $hGUI)
+		If Not @error Then
+			Local $aList[1000][2] = [[0]]     ;[FileName][FileSz]
+			Find_AllFiles($zFolderIN, $aList, 100)                 ;Recursively finds files
+			For $i = 1 To $aList[0][0]                 ;Dumps found files to listview
+				If StringInStr($aList[$i][0], GUICtrlRead($idInput_term)) Then
+					GUICtrlSetData($idListFiles, $aList[$i][0])
+				EndIf
+			Next
+		EndIf
+		ListUpdate()
+	ElseIf BitAND(GUICtrlRead($idButton_Excl), $GUI_CHECKED) = $GUI_CHECKED Then
+		Local $zFolderIN = FileSelectFolder("Select a folder", "", Default, Default, $hGUI)
+		If Not @error Then
+			Local $aList[1000][2] = [[0]]     ;[FileName][FileSz]
+			Find_AllFiles($zFolderIN, $aList, 100)                 ;Recursively finds files
+			For $i = 1 To $aList[0][0]                 ;Dumps found files to listview
+				If Not StringInStr($aList[$i][0], GUICtrlRead($idInput_term)) Then
+					GUICtrlSetData($idListFiles, $aList[$i][0])
+				EndIf
+			Next
+		EndIf
+		ListUpdate()
 	EndIf
-	ListUpdate()
 EndFunc   ;==>_BrowseFolders
 Func _On_Drop($hDrop)
-	Local $aDrop_List = _WinAPI_DragQueryFileEx($hDrop, 0) ; 0 = Returns files and folders
-	Local $aList[1000][2] = [[0]] ;[FileName][FileSz]
-	For $i = 1 To $aDrop_List[0]
-		GUICtrlSetData($idListFiles, $aDrop_List[$i]) ;Dumps dropped files to listview
-		If StringLen($aDrop_List[$i]) < 4 Then MsgBox(0, "Test", "This Will Take a While Message Etc...")
-		Find_AllFiles($aDrop_List[$i], $aList, 100) ;Recursively finds files
-	Next
-	_GUICtrlListBox_BeginUpdate($idListFiles)
-	For $i = 1 To $aList[0][0] ;Dumps found files to listview
-		GUICtrlSetData($idListFiles, $aList[$i][0])
-	Next
-	_GUICtrlListBox_EndUpdate($idListFiles)
-	ListUpdate()
+	If BitAND(GUICtrlRead($idButton_Incl), $GUI_CHECKED) = $GUI_CHECKED Then
+		Local $aDrop_List = _WinAPI_DragQueryFileEx($hDrop, 0) ; 0 = Returns files and folders
+		Local $aList[1000][2] = [[0]] ;[FileName][FileSz]
+		For $i = 1 To $aDrop_List[0]
+			Local $JpgCheck = StringRight($aDrop_List[$i], 4)
+			If $JpgCheck = ".jpg" Then
+				If StringInStr($aDrop_List[$i], GUICtrlRead($idInput_term)) Then     ;Dumps dropped files to listview
+					GUICtrlSetData($idListFiles, $aDrop_List[$i])
+					If StringLen($aDrop_List[$i]) < 4 Then
+						Find_AllFiles($aDrop_List[$i], $aList, 100)             ;Recursively finds files
+					EndIf
+				EndIf
+			EndIf
+		Next
+		_GUICtrlListBox_BeginUpdate($idListFiles)
+		For $i = 1 To $aList[0][0] ;Dumps found files to listview
+			$JpgCheck = StringRight($aList[$i][0], 4)
+			If $JpgCheck = ".jpg" Then
+				If StringInStr($aList[$i][0], GUICtrlRead($idInput_term)) Then     ;Dumps dropped files to listview
+					GUICtrlSetData($idListFiles, $aList[$i][0])
+				EndIf
+			EndIf
+		Next
+		_GUICtrlListBox_EndUpdate($idListFiles)
+		ListUpdate()
+	ElseIf BitAND(GUICtrlRead($idButton_Excl), $GUI_CHECKED) = $GUI_CHECKED Then
+		Local $aDrop_List = _WinAPI_DragQueryFileEx($hDrop, 0) ; 0 = Returns files and folders
+		Local $aList[1000][2] = [[0]] ;[FileName][FileSz]
+		For $i = 1 To $aDrop_List[0]
+			Local $JpgCheck = StringRight($aDrop_List[$i], 4)
+			If $JpgCheck = ".jpg" Then
+				If Not StringInStr($aDrop_List[$i], GUICtrlRead($idInput_term)) Then     ;Dumps dropped files to listview
+					GUICtrlSetData($idListFiles, $aDrop_List[$i])
+					If StringLen($aDrop_List[$i]) < 4 Then
+						Find_AllFiles($aDrop_List[$i], $aList, 100)             ;Recursively finds files
+					EndIf
+				EndIf
+			EndIf
+		Next
+		_GUICtrlListBox_BeginUpdate($idListFiles)
+		For $i = 1 To $aList[0][0] ;Dumps found files to listview
+			$JpgCheck = StringRight($aList[$i][0], 4)
+			If $JpgCheck = ".jpg" Then
+				If Not StringInStr($aList[$i][0], GUICtrlRead($idInput_term)) Then     ;Dumps dropped files to listview
+					GUICtrlSetData($idListFiles, $aList[$i][0])
+				EndIf
+			EndIf
+		Next
+		_GUICtrlListBox_EndUpdate($idListFiles)
+		ListUpdate()
+	EndIf
 EndFunc   ;==>_On_Drop
 Func ListUpdate()
 	Local $Count, $aListToArray, $aArrayToInput, $aArrayToTrim
 	$Count = _GUICtrlListBox_GetCount($idListFiles)
 	$aListToArray = ""
-	For $i = 0 to $Count - 1
+	For $i = 0 To $Count - 1
 		$aListToArray &= _GUICtrlListBox_GetText($idListFiles, $i) & "|"
 	Next
 	$aArrayToTrim = StringTrimRight($aListToArray, 1)
@@ -181,41 +306,50 @@ Func ListUpdate()
 	Else
 		_Main_Processing($aArrayToTrim, 1, 1)
 	EndIf
-EndFunc
+EndFunc   ;==>ListUpdate
 Func _Main_Processing($sFilePath, $nCurrent = 0, $nTotal = 0)
 	;_GUI_SwitchMsg()
 	;_TRAY_SwitchMsg()
 	$sPercent = Round(($nCurrent / $nTotal) * 100, 2)
 	GUICtrlSetData($idProgress_Total, $sPercent)
-	ConsoleWrite("- Percent: " & $sPercent & " %" & @CRLF)
+	ConsoleWrite("Total Progress: " & $sPercent & "%" & @CRLF)
 	GUICtrlSetData($idProgress_Current, 0)
-	GUICtrlSetData($idLabel_Titles, "Processing " & $nCurrent & "/" & $nTotal & " folder/files ! ")
+	GUICtrlSetData($idLabel_Titles, "Total selected " & $nTotal & " files. (" & $sPercent & "%)")
 
 	Local $sDrive, $sParentDir, $sCurrentDir, $sFileNameNoExt, $sExtension, $sFileName, $sPathParentDir, $sPathCurrentDir, $sPathFileNameNoExt
 	Local $aPathSplit = _SplitPath($sFilePath, $sDrive, $sParentDir, $sCurrentDir, $sFileNameNoExt, $sExtension, $sFileName, $sPathParentDir, $sPathCurrentDir, $sPathFileNameNoExt)
 	;Local $sCurrentDirPath= $sDrive&$sCurrentDir;StringRegExpReplace($aPathSplit, '\\[^\\]*$', '')
 	;Local $sCurrentDirName =StringRegExpReplace(_PathRemoveBackslash($sCurrentDirPath), '.*\\', '')
-	ConsoleWrite(";~ - [1] Drive: " & $sDrive & @CRLF)
-	ConsoleWrite(";~ - [2] ParentDir: " & $sParentDir & @CRLF)
-	ConsoleWrite(";~ - [3] CurrentDir: " & $sCurrentDir & @CRLF)
-	ConsoleWrite(";~ - [4] FileName NoExt: " & $sFileNameNoExt & @CRLF)
-	ConsoleWrite(";~ - [5] Extension: " & $sExtension & @CRLF)
-	ConsoleWrite(";~ - [6] FileName: " & $sFileName & @CRLF)
-	ConsoleWrite(";~ - [7] PathParentDir: " & $sPathParentDir & @CRLF)
-	ConsoleWrite(";~ - [8] PathCurrentDir: " & $sPathCurrentDir & @CRLF)
-	ConsoleWrite(";~ - [9] PathFileName NoExt: " & $sPathFileNameNoExt & @CRLF)
-	ConsoleWrite("- Processing (" & $nCurrent & "/" & $nTotal & "): " & $sFilePath & @CRLF)
+	ConsoleWrite("[1] Drive: " & $sDrive & @CRLF)
+	ConsoleWrite("[2] ParentDir: " & $sParentDir & @CRLF)
+	ConsoleWrite("[3] CurrentDir: " & $sCurrentDir & @CRLF)
+	ConsoleWrite("[4] FileName NoExt: " & $sFileNameNoExt & @CRLF)
+	ConsoleWrite("[5] Extension: " & $sExtension & @CRLF)
+	ConsoleWrite("[6] FileName: " & $sFileName & @CRLF)
+	ConsoleWrite("[7] PathParentDir: " & $sPathParentDir & @CRLF)
+	ConsoleWrite("[8] PathCurrentDir: " & $sPathCurrentDir & @CRLF)
+	ConsoleWrite("[9] PathFileName NoExt: " & $sPathFileNameNoExt & @CRLF)
+	ConsoleWrite("Total selected " & $nTotal & " files. (" & $sPercent & "%)" & @CRLF)
 	If _IsFile($sFilePath) Then
-		ConsoleWrite("- Processing file: " & $sFileName & @CRLF)
-		GUICtrlSetData($idLabel_Task, "Currently File: " & $sFileName)
+		ConsoleWrite("Processing now: (" & $nCurrent & ") " & $sFileName & @CRLF)
+		GUICtrlSetData($idLabel_Task, "Processing now: (" & $nCurrent & ") " & $sFileName)
+		If BitAND(GUICtrlRead($idButton_both), $GUI_CHECKED) = $GUI_CHECKED Then
+			If BitAND(GUICtrlRead($idButton_Incl), $GUI_CHECKED) = $GUI_CHECKED Then
+				Local $Output = StringSplit($sFileName, GUICtrlRead($idInput_term), 1)
+				RunWait(@ComSpec & " /c" & "convert -quality 25 -compress jpeg """ & $Output[1] & "*"" """ & $Output[1] & ".pdf""", "", @SW_HIDE)
+				;ShellExecuteWait("C:\Program Files\ImageMagick-7.1.0-Q16-HDRI\magick.exe", " -quality 25 -compress jpeg  """ & $sFileName & """ """ & $Output[1] & """.pdf")
+				ConsoleWrite("magick -quality 25 -compress jpeg """ & $Output[1] & "*"" """ & $Output[1] & ".pdf""" & @CRLF)
+			EndIf
+		EndIf
 		; Your file handler is here!
 	Else
 		If ($sParentDir == "\" And $sCurrentDir == "") Then ; Is Root Drive
 			; Your drive handler is here!
-			ConsoleWrite("- Processing drive: " & $sDrive & @CRLF)
-			GUICtrlSetData($idLabel_Task, "Currently Drive: " & $sDrive)
+			ConsoleWrite("Processing now: (" & $i & ") " & $sDrive & @CRLF)
+			GUICtrlSetData($idLabel_Task, "Processing now: (" & $i & ") " & $sDrive)
 		Else
 			; Your directory handler is here!
+			ConsoleWrite("No file found in directory " & $sFilePath)
 			ConsoleWrite("- Processing directory: " & _PathRemove_Backslash($sPathCurrentDir) & @CRLF)
 			GUICtrlSetData($idLabel_Task, "Currently Folder: " & _PathRemove_Backslash($sCurrentDir))
 		EndIf
@@ -247,7 +381,23 @@ Func _GUI_SwitchMsg()
 	$guiMsg = GUIGetMsg()
 	Switch $guiMsg
 		Case $idButton_About
-			MsgBox(64, $sAppName & " : About", @YEAR & " © Ðào Văn Trong - Trong.LIVE", Default, $hGUI)
+			;MsgBox(64, "About", "© " & @YEAR & " Rakibul Hafiz", Default, $hGUI)
+			GUISetState(@SW_MINIMIZE, $hGUI)
+			GUISetState(@SW_SHOW, $hGUI_Child)
+
+			For $i = 0 To 150 Step 8
+				WinSetTrans($hGUI_Child, "", $i)
+				Sleep(10)
+			Next
+			Sleep(5000)
+			For $i = 150 To 0 Step -4
+				WinSetTrans($hGUI_Child, "", $i)
+				Sleep(10)
+			Next
+
+			GUISetState(@SW_HIDE, $hGUI_Child)
+			_GUI_SHOW()
+
 		Case $idButton_Minimizes
 			GUISetState(@SW_MINIMIZE, $hGUI)
 		Case $idIcon
@@ -312,6 +462,13 @@ Func _GUI_OnProgress()
 	GUICtrlSetState($idButton_Minimizes, $GUI_NODROPACCEPTED) ; NODROPACCEPTED
 	GUICtrlSetState($idProgress_Total, $GUI_NODROPACCEPTED) ; NODROPACCEPTED
 	GUICtrlSetState($idProgress_Current, $GUI_NODROPACCEPTED) ; NODROPACCEPTED
+	GUICtrlSetState($idButton_pdf, $GUI_NODROPACCEPTED)
+	GUICtrlSetState($idButton_zip, $GUI_NODROPACCEPTED)
+	GUICtrlSetState($idButton_both, $GUI_NODROPACCEPTED)
+	GUICtrlSetState($idInput_term, $GUI_NODROPACCEPTED)
+	GUICtrlSetState($idButton_Incl, $GUI_NODROPACCEPTED)
+	GUICtrlSetState($idButton_Excl, $GUI_NODROPACCEPTED)
+
 EndFunc   ;==>_GUI_OnProgress
 Func _GUI_OnStandby()
 	$onWorking = 0
@@ -334,6 +491,12 @@ Func _GUI_OnStandby()
 	GUICtrlSetState($idButton_Minimizes, $GUI_DROPACCEPTED) ; DROPACCEPTED
 	GUICtrlSetState($idProgress_Total, $GUI_DROPACCEPTED) ; DROPACCEPTED
 	GUICtrlSetState($idProgress_Current, $GUI_DROPACCEPTED) ; DROPACCEPTED
+	GUICtrlSetState($idButton_pdf, $GUI_DROPACCEPTED)
+	GUICtrlSetState($idButton_zip, $GUI_DROPACCEPTED)
+	GUICtrlSetState($idButton_both, $GUI_DROPACCEPTED)
+	GUICtrlSetState($idInput_term, $GUI_DROPACCEPTED)
+	GUICtrlSetState($idButton_Incl, $GUI_DROPACCEPTED)
+	GUICtrlSetState($idButton_Excl, $GUI_DROPACCEPTED)
 EndFunc   ;==>_GUI_OnStandby
 ; React to items dropped on the GUI
 Func _WM_DROPFILES($hWnd, $iMsg, $wParam, $lParam)
@@ -581,6 +744,20 @@ Func _PathRemove_Backslash($sPath)
 	Return $sPath
 EndFunc   ;==>_PathRemove_Backslash
 ; * -----:|
+Func _GuiRoundCorners($hWnd, $iLeftRect, $iTopRect, $iWidthEllipse, $iHeightEllipse)
+	Local $aPos = 0, $aRet = 0
+
+	$aPos = WinGetPos($hWnd)
+
+	$aRet = DllCall("gdi32.dll", "long", "CreateRoundRectRgn", "long", $iLeftRect, "long", $iTopRect, "long", $aPos[2], "long", $aPos[3], "long", $iWidthEllipse, "long", $iHeightEllipse)
+	If Not @error And $aRet[0] Then
+		$aRet = DllCall("user32.dll", "long", "SetWindowRgn", "hwnd", $hWnd, "long", $aRet[0], "int", 1)
+		If Not @error And $aRet[0] Then Return 1
+	EndIf
+
+	Return 0
+EndFunc   ;==>_GuiRoundCorners
+; * -----:|
 Func __WinAPI_GetLastError(Const $_iCallerError = @error, Const $_iCallerExtended = @extended)
 	Local $aCall = DllCall("kernel32.dll", "dword", "GetLastError")
 	Return SetError($_iCallerError, $_iCallerExtended, $aCall[0])
@@ -603,7 +780,7 @@ Func Find_AllFiles($sPath, ByRef $aList, $iMaxRecursion, $bRecurse = False)
 
 	Local $sFile
 	If StringRight($sPath, 1) <> "\" Then $sPath &= "\"
-	Local $hSearch = _WinAPI_FindFirstFile($sPath & '*', $tData)
+	Local $hSearch = _WinAPI_FindFirstFile($sPath & '*.jpg', $tData)
 	While Not @error
 		$sFile = DllStructGetData($tData, 'cFileName')
 		Switch $sFile
