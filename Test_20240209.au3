@@ -6,7 +6,7 @@
 
 ; Define folder paths
 $sourceDir = "C:\Users\rakib\AppData\Roaming\Everything\"
-$targetDir = "F:\Software\Everything\"
+$targetDir = "E:\Everything Config\"
 
 ; Function to check MD5 hash
 Func _IsFileDiff($sFilePath_1, $sFilePath_2, $iPercent = Default)
