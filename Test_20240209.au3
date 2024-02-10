@@ -13,14 +13,26 @@ Func _IsFileDiff($sFilePath_1, $sFilePath_2, $iPercent = Default)
     Return Not (_CRC32ForFile($sFilePath_1, $iPercent) == _CRC32ForFile($sFilePath_2, $iPercent))
 EndFunc   ;==>_IsFileDiff
 
+Func _GetCurrentDateTimeAs_YYYYMMDDHHMMSS()
+    Local $sDateTime = ""
+    Local Const $iStripAllWhitespaces = 8
+    $sDateTime = _NowCalc()
+    ConsoleWrite('(' & @ScriptLineNumber & ') : $sDateTime = ' & $sDateTime & @CRLF & '>Error code: ' & @error & @CRLF)
+
+    $sDateTime = StringReplace($sDateTime, '/', '')
+    $sDateTime = StringReplace($sDateTime, ':', '')
+
+    Return StringStripWS($sDateTime, $iStripAllWhitespaces)
+EndFunc
+
 ; Open log file
 Local $logFileHandle = FileOpen($logFile, $FO_APPEND) ; Append to existing log
 
 ; Get current date and time
-Local $dateTime = _Now()
+;Local $dateTime = _GetCurrentDateTimeAs_YYYYMMDDHHMMSS()
 
 ; Write start message to log
-FileWrite($logFileHandle, "On " & $dateTime & " : Started file comparison and synchronization." & @CRLF)
+FileWrite($logFileHandle, _GetCurrentDateTimeAs_YYYYMMDDHHMMSS() & " Started file comparison and synchronization." & @CRLF)
 
 ; Loop through source files
 Local $fileSearch = FileFindFirstFile($sourceDir & "*.*")
@@ -42,7 +54,7 @@ While 1
         ; File doesn't exist, copy and log
         FileCopy($sourcePath, $targetPath)
         FileSetTime($targetPath, "", $FT_CREATED)
-        FileWrite($logFileHandle, "On " & $dateTime & " : Created: " & $targetPath & @CRLF)
+        FileWrite($logFileHandle, _GetCurrentDateTimeAs_YYYYMMDDHHMMSS() & " Successfully copied " & $targetPath & @CRLF)
     Else
         ; Compare file content using CRC32
         $fileHash = _IsFileDiff($sourcePath, $targetPath, 100)
@@ -51,14 +63,14 @@ While 1
             ; Files are different, copy and log
             FileCopy($sourcePath, $targetPath)
             FileSetTime($targetPath, "", $FT_CREATED)
-            FileWrite($logFileHandle, "On " & $dateTime & " : Updated: " & $targetPath & @CRLF)
+            FileWrite($logFileHandle, _GetCurrentDateTimeAs_YYYYMMDDHHMMSS() & " Successfully updated " & $targetPath & @CRLF)
         EndIf
     EndIf
 WEnd
 FileClose($fileSearch)
 
 ; Write end message to log
-FileWrite($logFileHandle, "On " & $dateTime & " : Finished file comparison and synchronization." & @CRLF)
+FileWrite($logFileHandle, _GetCurrentDateTimeAs_YYYYMMDDHHMMSS() & " Finished file comparison and synchronization." & @CRLF)
 
 ; Close log file
 FileClose($logFileHandle)
