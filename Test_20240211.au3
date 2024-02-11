@@ -3,7 +3,32 @@
 #include <Constants.au3>
 #include "_CRC32ForFile.au3"
 
+Global $config = @ScriptDir & "\config.ini"
+Local $iniexist = FileExists($config)
+
+If Not $iniexist Then
+    MsgBox(0, "Notice", "No config.ini found. Default options loaded and config.ini file is going to be created.", 5)
+    _inidef($config)
+EndIf
+
+Func _inidef($config)
+    $hFile = FileOpen($config, 2)
+    FileWrite($hFile, _
+    "[Main]" & @CRLF & _
+    "var1 = 1" & @CRLF & _
+    @CRLF)
+    FileClose($hFile)
+EndFunc   ;==>_inidef
+
+; Define config file paths
+;If Not FileExists(@ScriptDir & "\config.ini") Then
+;    IniWrite(@ScriptDir & "\config.ini", "Main", "sourceDir", "")
+;    IniWrite(@ScriptDir & "\config.ini", "Main", "targetDir", "")
+;    IniWrite(@ScriptDir & "\config.ini", "Main", "logFilePath", "")
+;EndIf
+
 ; Define folder paths
+;Global $sourceDir = _ReadIni(, "")
 Global $sourceDir = "C:\Users\rakib\AppData\Roaming\Everything"
 Global $targetDir = "E:\Everything Config"
 Global $logFilePath = "E:\Everything Config\FileSyncLog.txt" ; Define log file path
@@ -72,5 +97,19 @@ Func SyncFiles()
     ; Close log file
     FileClose($logFile)
 EndFunc
+
+;_SaveIni(, )
+
+Func _SaveIni($_sKey, $_sValue)
+	Local $sIniRead = IniRead($config, "Main", $_sKey, "")
+	If $sIniRead = $_sValue Then Return
+	IniWrite($config, "Main", $_sKey, $_sValue)
+EndFunc   ;==>_SaveIni
+
+;_ReadIni(, )
+
+Func _ReadIni(ByRef $_rKey, $_rValue = "")
+	Return IniRead($config, "Main", $_rKey, $_rValue)
+EndFunc   ;==>_ReadIni
 
 Exit
