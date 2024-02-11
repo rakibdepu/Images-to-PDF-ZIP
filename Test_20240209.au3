@@ -47,7 +47,7 @@ While 1
 
         If $fileHash = True Then
             ; Check filename first
-            If StringInStr($targetPath, "backup") Then
+            If StringInStr($sourceFile, "backup") Then
                 ; Delete "backup.old"
                 Local $targetDrive = "", $targetDir = "", $targetFile = "", $targetExt = ""
                 Local $targetPathSplit = _PathSplit($targetPath, $targetDrive, $targetDir, $targetFile, $targetExt)
@@ -56,14 +56,10 @@ While 1
                     ConsoleWrite('(' & @ScriptLineNumber & ') : Delete File = ' & $targetFile & ".old" & $targetExt & @CRLF & '>Error code: ' & @error & @CRLF)
                     FileDelete($targetFile & ".old" & $targetExt)
                 EndIf
-                FileWrite($logFileHandle, @YEAR & @MON & @MDAY & @HOUR & @MIN & @SEC & @MSEC & "	Deleted		" & $targetFile & ".old" & $targetExt & @CRLF)
+                FileWrite($logFileHandle, @YEAR & @MON & @MDAY & @HOUR & @MIN & @SEC & @MSEC & "	Deleting		" & $targetFile & ".old" & $targetExt & @CRLF)
                 FileMove($targetPath, $targetDrive & $targetDir & $targetFile & ".old" & $targetExt)
                 ; Rename to "backup.old"
-                FileWrite($logFileHandle, @YEAR & @MON & @MDAY & @HOUR & @MIN & @SEC & @MSEC & "	Renaming	" & $targetFile & $targetExt & @CRLF)
-                ; Files copy and log
-                FileCopy($sourcePath, $targetPath)
-                FileSetTime($targetPath, "", $FT_CREATED)
-                FileWrite($logFileHandle, @YEAR & @MON & @MDAY & @HOUR & @MIN & @SEC & @MSEC & "	Updating	" & $sourceFile & @CRLF)
+                FileWrite($logFileHandle, @YEAR & @MON & @MDAY & @HOUR & @MIN & @SEC & @MSEC & "	Renaming	" & $targetFile & $targetExt & " to " & $targetFile & ".old" & $targetExt & @CRLF)
             Else
                 ; Files are different, copy and log
                 FileCopy($sourcePath, $targetPath)
