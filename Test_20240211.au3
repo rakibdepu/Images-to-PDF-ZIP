@@ -112,4 +112,13 @@ Func _ReadIni(ByRef $_rKey, $_rValue = "")
 	Return IniRead($config, "Main", $_rKey, $_rValue)
 EndFunc   ;==>_ReadIni
 
+Func _IniReadInit($filename, $section, $key, $default)
+    Local $value = IniRead($filename, $section, $key, Chr(127))
+      If $value = Chr(127) Then
+        IniWrite($filename, $section, $key, $default)
+        $value = $default
+      EndIf
+      Return $value
+  EndFunc
+
 Exit
